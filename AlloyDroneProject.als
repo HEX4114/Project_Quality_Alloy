@@ -64,6 +64,6 @@ fact Drone {all d: Drone | no d2: Drone | DronesSuperposes[d,d2]}
 -- check ReceptaclesAtteignables
 
 pred go {}
-run go for 1 but 6 Drone
+run go
 
 
