@@ -7,27 +7,26 @@ sig Coordonnees{
 	x: Int, y: Int
 }
 
-sig Noeud{
-	coord: Coordonnees
+sig Noeud extends Coordonnees {
+	drone : lone Drone
 }
 
-one sig Entrepot extends Noeud{ -- Entrepot est un singleton
-
+one sig Entrepot extends Coordonnees{ -- Entrepot est un singleton
+	drone : some Drone
 }
 
-sig Receptacle extends Noeud{
-
+sig Receptacle extends Coordonnees{
+	drone : lone Drone
 }
 
-sig Drone{
-	node: Noeud
+some sig Drone{
 }
 
 -- Fonctions Utilitaires
 fun abs[n: Int] : Int {n<0 => (negate[n]) else (n) }
 
-fun distanceDeManhattan[n,m: Noeud] : Int{
-	add[abs[sub[m.coord.x,n.coord.x]], abs[sub[m.coord.y,n.coord.y]]]
+fun distanceDeManhattan[n,m: Coordonnees] : Int{
+	add[abs[sub[m.x,n.x]], abs[sub[m.y,n.y]]]
 }
 
 -- Predicats
@@ -35,29 +34,25 @@ fun distanceDeManhattan[n,m: Noeud] : Int{
 --	eq[distanceDeManhattan[n, m], 1] -- distance de manhattan entre les n et m = 1
 --}
 
-pred Atteignable[n, m: Noeud] {
+pred Atteignable[n, m: Coordonnees] {
 	lte[distanceDeManhattan[n, m], 3]
 }
 
-pred nonAtteignable[n, m: Noeud] {
+pred nonAtteignable[n, m: Coordonnees] {
 	gt[distanceDeManhattan[n, m], 3]
 }
 
-pred Superpose[n1, n2: Noeud]{
+pred Superpose[n1, n2: Coordonnees]{
 	n1 != n2 && eq[distanceDeManhattan[n1, n2], 0]
 }
 
 
-pred DronesSuperposes[d1,d2:Drone]{
-	d1 != d2 && (eq[distanceDeManhattan[d1.node, d2.node], 0] || (d1.node != Entrepot && d2.node != Entrepot))
-}
-
 -- Invariants
 fact EntrepotNonIsole {all e: Entrepot | some r: Receptacle | Atteignable[e, r]}
-fact EntrepotDisjoint{one e: Entrepot | all r: Receptacle | e.coord != r.coord}
+fact EntrepotDisjoint{one e: Entrepot | all r: Receptacle | (e.x != r.x && e.y != r.y)}
 fact EcartReceptacles {all r: Receptacle | some r2: Receptacle | Atteignable[r,r2] &&r!=r2}
-fact NoeudsDisjoints{all n1: Noeud | no n2: Noeud | Superpose[n1, n2]}
-fact Drone {all d: Drone | no d2: Drone | DronesSuperposes[d,d2]}
+fact NoeudsDisjoints{all n1: Coordonnees| no n2: Coordonnees | Superpose[n1, n2]}
+fact DroneNonPartage{all n1:Coordonnees | no n2 : Coordonnees | n1.drone != n2.drone }
 
 -- Assertions
 -- assert ReceptaclesAtteignables {all r: Receptacle | no r2: Receptacle | nonAtteignable[r,r2]}
