@@ -8,12 +8,11 @@ sig Coordonnees{
 }
 
 sig Noeud extends Coordonnees {
-	drone : lone Drone,
-	receptacle: lone Receptacle
+	drone : lone Drone
 }
 
 one sig Entrepot extends Coordonnees{ -- Entrepot est un singleton
-	drone : some Drone -- garantie que DNB sup zero
+	drone : Drone -- garantie que DNB sup zero
 }
 
 sig Receptacle extends Coordonnees{
@@ -51,6 +50,10 @@ pred ObjetSurCoord [o, c: Coordonnees]{
 	eq[o.x,c.x] && eq[o.y,c.y]
 }
 
+pred DronesSimilar[d1,d2 : Drone]{
+	d1 = d2
+}
+
 
 -- Invariants
 fact {all n: Coordonnees| n.x >=0 && n.x <= 7 && n.y >= 0 && n.y <= 7}
@@ -60,10 +63,15 @@ fact EcartReceptacles {all r: Receptacle | some r2: Receptacle | Atteignable[r,r
 fact NoeudsDisjoints{all n1: Coordonnees| no n2: Coordonnees | Superpose[n1, n2]}
 fact RNBsupZero {some c: Coordonnees | one r: Receptacle | ObjetSurCoord[r,c]}
 fact EntrepotOrigine {one c: Coordonnees | one e: Entrepot | ( ObjetSurCoord[e,c] && eq[e.x,0] && eq[e.y,0])}
+fact DroneNonOmnipresent1{all e:Entrepot | no r : Receptacle | DronesSimilar[e.drone, r.drone] }
+fact DroneNonOmnipresent2{all e:Entrepot | no n : Noeud | DronesSimilar[e.drone, n.drone] }
+fact DroneNonOmnipresent3{all r1:Receptacle | no r2 : Receptacle | DronesSimilar[r1.drone , r2.drone] && r1 != r2 }
+fact DroneNonOmnipresent4{all r1:Receptacle | no n2 : Noeud | DronesSimilar[r1.drone , n2.drone] }
+fact DroneNonOmnipresent5{all n1:Noeud | no n2 : Noeud | DronesSimilar[n1.drone , n2.drone] && n1 != n2}
 
 
 -- Assertions
-assert DistanceManthattanPositive{all n1: Noeud | no n2: Noeud | distanceDeManhattan[n1, n2]<0}
+assert DistanceManthattanPositive{all c1: Coordonnees | no c2: Coordonnees | distanceDeManhattan[c1, c2]<0}
 --check DistanceManthattanPositive for 5 but 5 Int expect 0
 assert ReceptaclesAtteignables {all r: Receptacle | no r2: Receptacle | nonAtteignable[r,r2]}
 --check ReceptaclesAtteignables
@@ -75,6 +83,6 @@ assert CoordonneesAvecReceptacle {some c: Coordonnees | one r: Receptacle | Obje
 --check CoordonneesAvecReceptacle
 
 pred go {}
-run go 
+run go for 10 but 4 Drone
 
 
