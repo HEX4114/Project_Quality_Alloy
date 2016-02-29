@@ -59,6 +59,7 @@ pred DronesSimilaires[d1,d2 : Drone]{
 
 
 
+
 -- Invariants
 fact {all n: Coordonnees| n.x >=0 && n.x <= 7 && n.y >= 0 && n.y <= 7}
 fact EntrepotNonIsole {all e: Entrepot | some r: Receptacle | Atteignable[e, r]}
@@ -69,8 +70,8 @@ fact RNBsupZero {some c: Coordonnees | one r: Receptacle | ObjetSurCoord[r,c]}
 fact EntrepotOrigine {one c: Coordonnees | one e: Entrepot | ( ObjetSurCoord[e,c] && eq[e.x,0] && eq[e.y,0])}
 fact DroneLocationUnique {all c1 : Coordonnees | no c2 : Coordonnees | DroneUniqueEndroit[c1,c2]}
 fact DroneAssocieACoordonnes {all d : Drone | one c : Coordonnees | DronesSimilaires[d,c.drone]}
-
-
+fact ReceptacleUnDrone {all r : Receptacle | lone d : Drone | DronesSimilaires[r.drone,d]}
+fact NoeudUnDrone {all n : Noeud | lone d : Drone | DronesSimilaires[n.drone,d]}
 -- Assertions
 assert DistanceManthattanPositive{all c1: Coordonnees | no c2: Coordonnees | distanceDeManhattan[c1, c2]<0}
 --check DistanceManthattanPositive for 5 but 5 Int expect 0
@@ -85,6 +86,6 @@ assert CoordonneesAvecReceptacle {some c: Coordonnees | one r: Receptacle | Obje
 assert DronePosittion {}
 
 pred go {}
-run go for 10 but 10 Drone
+run go for 10 but exactly 10 Drone
 
 
