@@ -31,9 +31,9 @@ fun distanceDeManhattan[n,m: Noeud] : Int{
 }
 
 -- Predicats
-pred EstACoteDe[n,m: Noeud] { 
+/*pred EstACoteDe[n,m: Noeud] { 
 	eq[distanceDeManhattan[n, m], 1] -- distance de manhattan entre les n et m = 1
-}
+}*/
 
 pred Atteignable[n, m: Noeud] {
 	lte[distanceDeManhattan[n, m], 3]
@@ -53,14 +53,17 @@ pred DronesSuperposes[d1,d2:Drone]{
 }
 
 -- Invariants
-fact EntrepotNonIsole {one e: Entrepot | some r: Receptacle | EstACoteDe[e, r]}
+fact {all n: Noeud | n.coord.x >=0 && n.coord.x <= 7 && n.coord.y >= 0 && n.coord.y <= 7}
+fact EntrepotNonIsole {all e: Entrepot | some r: Receptacle | Atteignable[e, r]}
 fact EcartReceptacles {all r: Receptacle | some r2: Receptacle | Atteignable[r,r2] && r != r2}
 fact NoeudsDisjoints{all n1: Noeud | no n2: Noeud | Superpose[n1, n2]}
 fact Drone {all d: Drone | no d2: Drone | DronesSuperposes[d,d2]}
 
 -- Assertions
--- assert ReceptaclesAtteignables {all r: Receptacle | no r2: Receptacle | nonAtteignable[r,r2]}
--- check ReceptaclesAtteignables
+assert DistanceManthattanPositive{all n1: Noeud | no n2: Noeud | distanceDeManhattan[n1, n2]<0}
+--check DistanceManthattanPositive for 5 but 5 Int expect 0
+assert ReceptaclesAtteignables {all r: Receptacle | no r2: Receptacle | nonAtteignable[r,r2]}
+--check ReceptaclesAtteignables
 
 pred go {}
 run go
