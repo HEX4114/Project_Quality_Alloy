@@ -59,6 +59,7 @@ fact EntrepotDisjoint{one e: Entrepot | all r: Receptacle | (e.x != r.x && e.y !
 fact EcartReceptacles {all r: Receptacle | some r2: Receptacle | Atteignable[r,r2] &&r!=r2}
 fact NoeudsDisjoints{all n1: Coordonnees| no n2: Coordonnees | Superpose[n1, n2]}
 fact RNBsupZero {some c: Coordonnees | one r: Receptacle | ObjetSurCoord[r,c]}
+fact EntrepotOrigine {one c: Coordonnees | one e: Entrepot | ( ObjetSurCoord[e,c] && eq[e.x,0] && eq[e.y,0])}
 
 
 -- Assertions
@@ -74,6 +75,6 @@ assert CoordonneesAvecReceptacle {some c: Coordonnees | one r: Receptacle | Obje
 --check CoordonneesAvecReceptacle
 
 pred go {}
---run go 
+run go 
 
 
