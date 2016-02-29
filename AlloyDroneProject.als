@@ -49,7 +49,7 @@ pred Superpose[n1, n2: Noeud]{
 
 
 pred DronesSuperposes[d1,d2:Drone]{
-	d1 != d2 && eq[distanceDeManhattan[d1.node, d2.node], 0]
+	d1 != d2 && (eq[distanceDeManhattan[d1.node, d2.node], 0] || (d1.node != Entrepot && d2.node != Entrepot))
 }
 
 -- Invariants
@@ -63,6 +63,6 @@ fact Drone {all d: Drone | no d2: Drone | DronesSuperposes[d,d2]}
 -- check ReceptaclesAtteignables
 
 pred go {}
-run go
+run go for 1 but 6 Drone
 
 
