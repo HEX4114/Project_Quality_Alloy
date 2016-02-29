@@ -3,7 +3,7 @@ module projet
 open util/integer
 
 -- Signatures
-sig Coordonnees{
+abstract sig Coordonnees{
 	x: Int, y: Int
 }
 
