@@ -44,8 +44,8 @@ pred Superpose[r1, r2: Receptacle]{
 }
 
 
-pred DronesNonSuperposes[d1,d2:Drone]{
-	d1 != d2 &&eq[distanceDeManhattan[d1.node, d2.node], 0]
+pred DronesSuperposes[d1,d2:Drone]{
+	d1 != d2 && eq[distanceDeManhattan[d1.node, d2.node], 0]
 }
 
 -- Invariants
@@ -53,7 +53,7 @@ fact EntrepotNonIsole {one e: Entrepot | some r: Receptacle | EstACoteDe[e, r]}
 fact EntrepotDisjoint{one e: Entrepot | all r: Receptacle | e.coord != r.coord}
 fact EcartReceptacles {all r: Receptacle | some r2: Receptacle | Atteignable[r,r2]}
 fact ReceptaclesDisjoints{all r1: Receptacle | no r2: Receptacle | Superpose[r1, r2]}
-fact Drone {all d: Drone | no d2: Drone | DronesNonSuperposes[d,d2]}
+fact Drone {all d: Drone | no d2: Drone | DronesSuperposes[d,d2]}
 
 pred go {}
 run go
