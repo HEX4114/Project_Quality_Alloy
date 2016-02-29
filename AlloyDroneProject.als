@@ -7,7 +7,7 @@ sig Coordonnees{
 	x: Int, y: Int
 }
 
-abstract sig Noeud{
+sig Noeud{
 	coord: Coordonnees
 }
 
@@ -31,9 +31,9 @@ fun distanceDeManhattan[n,m: Noeud] : Int{
 }
 
 -- Predicats
-pred EstACoteDe[n,m: Noeud] { 
-	eq[distanceDeManhattan[n, m], 1] -- distance de manhattan entre les n et m = 1
-}
+--pred EstACoteDe[n,m: Noeud] { 
+--	eq[distanceDeManhattan[n, m], 1] -- distance de manhattan entre les n et m = 1
+--}
 
 pred Atteignable[n, m: Noeud] {
 	lte[distanceDeManhattan[n, m], 3]
@@ -49,10 +49,10 @@ pred DronesSuperposes[d1,d2:Drone]{
 }
 
 -- Invariants
-fact EntrepotNonIsole {one e: Entrepot | some r: Receptacle | EstACoteDe[e, r]}
+fact EntrepotNonIsole {all e: Entrepot | some r: Receptacle | Atteignable[e, r]}
 fact EntrepotDisjoint{one e: Entrepot | all r: Receptacle | e.coord != r.coord}
-fact EcartReceptacles {all r: Receptacle | some r2: Receptacle | Atteignable[r,r2]}
-fact ReceptaclesDisjoints{all r1: Receptacle | no r2: Receptacle | Superpose[r1, r2]}
+fact EcartReceptacles {all r: Receptacle | some r2: Receptacle | Atteignable[r,r2] &&r!=r2}
+fact ReceptaclesDisjoints{all r1: Noeud | no r2: Noeud | Superpose[r1, r2]}
 fact Drone {all d: Drone | no d2: Drone | DronesSuperposes[d,d2]}
 
 pred go {}
