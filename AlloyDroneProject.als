@@ -39,8 +39,12 @@ pred Atteignable[n, m: Noeud] {
 	lte[distanceDeManhattan[n, m], 3]
 }
 
-pred Superpose[r1, r2: Receptacle]{
-	r1 != r2 && eq[distanceDeManhattan[r1, r2], 0]
+pred nonAtteignable[n, m: Noeud] {
+	gt[distanceDeManhattan[n, m], 3]
+}
+
+pred Superpose[n1, n2: Noeud]{
+	n1 != n2 && eq[distanceDeManhattan[n1, n2], 0]
 }
 
 
@@ -52,13 +56,14 @@ pred DronesSuperposes[d1,d2:Drone]{
 fact EntrepotNonIsole {all e: Entrepot | some r: Receptacle | Atteignable[e, r]}
 fact EntrepotDisjoint{one e: Entrepot | all r: Receptacle | e.coord != r.coord}
 fact EcartReceptacles {all r: Receptacle | some r2: Receptacle | Atteignable[r,r2] &&r!=r2}
-fact ReceptaclesDisjoints{all r1: Noeud | no r2: Noeud | Superpose[r1, r2]}
+fact NoeudsDisjoints{all n1: Noeud | no n2: Noeud | Superpose[n1, n2]}
 fact Drone {all d: Drone | no d2: Drone | DronesSuperposes[d,d2]}
+
+-- Assertions
+-- assert ReceptaclesAtteignables {all r: Receptacle | no r2: Receptacle | nonAtteignable[r,r2]}
+-- check ReceptaclesAtteignables
 
 pred go {}
 run go
-
--- Assertions
-assert ReceptaclesAtteignable {}
 
 
