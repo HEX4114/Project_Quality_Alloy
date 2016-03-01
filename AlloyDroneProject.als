@@ -81,8 +81,13 @@ assert EntrepotExist {one c: Coordonnees | one e: Entrepot | ObjetSurCoord [e,c]
 --check EntrepotExist
 assert CoordonneeSansReceptacle {some c: Coordonnees | no r: Receptacle | ObjetSurCoord[r,c]}
 --check CoordonneeSansReceptacle
-assert CoordonneesAvecReceptacle {some c: Coordonnees | one r: Receptacle | ObjetSurCoord [r,c]}
+assert CoordonneesAvecReceptacle {some c: Coordonnees | one r: Receptacle | ObjetSurCoord [r,c]&&!eq[c.x,0]&&!eq[c.y,0]}
 --check CoordonneesAvecReceptacle
+-- false
+assert CoordonneesPlusiersReceptacles {all c: Coordonnees | some r: Receptacle | ObjetSurCoord [r,c]}
+--check CoordonneesPlusiersReceptacles
+assert DNBsupZero{some c: Coordonnees| one d: Drone | DronesSimilaires[c.drone, d] }
+--check DNBsupZero
 assert DronePosittion {}
 
 pred go {}
