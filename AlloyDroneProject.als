@@ -15,7 +15,7 @@ one sig Entrepot extends Coordonnees{}
 sig Receptacle extends Coordonnees{}
 
 some sig Drone{
-	coord: one Coordonnees
+	coord: Coordonnees one -> Time
 }
 
 sig Time{}
@@ -57,21 +57,21 @@ pred DronesSimilaires[d1,d2 : Drone]{
 	d1 = d2
 }
 
-/*pred init [t: Time] { -- on doit faire l'init pour un Time t
+pred init [t: Time] { -- on doit faire l'init pour un Time t
 	-- tous les drones a l'entrepot
 }
 
-pred deplacerDrone [t, t': Time, c: Coordonnees] { -- ce qui se passe quand qqun entre dans la chambre
-	d in c.drone.t -- drone a la coord c au Time t
-	let cap = c.drone.cap |
-		(cap = 0 and 
+pred deplacerDrone [t, t': Time, d: Drone] { -- ce qui se passe quand qqun entre dans la chambre
+	d.coord.t'.x = add[d.coord.t.x,1]
+
+/*	k in g.keys.t -- key du guest au time t
 	let ck = r.currentKey | -- currentKey de la room
 		(k = ck.t and ck.t' = ck.t) or -- le guest est le meme qu'avant, on change pas la k de la room
 		(k = nextKey[ck.t, r.keys] and ck.t' = k) -- le gust change et la ck de la room prend la valeur de la k de la carte (qui est le next du set de key de la lock) 
 	noRoomChangeExcept [t, t', r] -- ce qui ne doit pas changer
 	noGuestChangeExcept [t, t', none]
-	noFrontDeskChange [t, t']
-	}*/
+	noFrontDeskChange [t, t']*/
+}
 
 
 -- Invariants
@@ -84,9 +84,12 @@ fact RNBsupZero {some c: Coordonnees | one r: Receptacle | ObjetSurCoord[r,c]}
 fact EntrepotOrigine {one c: Coordonnees | one e: Entrepot | ( ObjetSurCoord[e,c] && eq[e.x,0] && eq[e.y,0])}
 fact DroneLocationUnique {all d1 : Drone| no d2 : Drone| DroneUniqueEndroit[d1,d2]}
 
-/*fact{
+fact start{
 	init [first] -- init pour le premier time de l'ordering Time
-}*/
+	all t: Time-last | let t' = t.next | -- pour tous les Time t on definit le Time suivant t'
+		some d: Drone |
+			deplacerDrone [t, t', d]
+}
 
 -- Assertions
 assert DistanceManthattanPositive{all c1: Coordonnees | no c2: Coordonnees | distanceDeManhattan[c1, c2]<0}
@@ -107,6 +110,6 @@ assert CoordonneesPlusiersReceptacles {all c: Coordonnees | some r: Receptacle |
 assert DronePosittion {}
 
 pred go {}
-run go for 10 but exactly 10 Drone, exactly 2 Time, 5 Int
+run go for 5 but exactly 2 Drone, exactly 2 Time, 5 Int
 
 
