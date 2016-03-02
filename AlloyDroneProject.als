@@ -12,15 +12,18 @@ sig Noeud extends Coordonnees {}
 
 one sig Entrepot extends Coordonnees{}
 
-sig Receptacle extends Coordonnees{}
+sig Receptacle extends Coordonnees{
+	poidMax: Int	
+}
 
 some sig Drone{
 	coord: Coordonnees one -> Time,
-	capacite: Int one -> Time
+	capacite: Int one -> Time,
+	poidMax : Int
 }
 
 
-sig Commande{
+some sig Commande{
 	r: one Receptacle,
 	poid: Int
 }
@@ -95,7 +98,8 @@ fact EntrepotOrigine {one c: Coordonnees | one e: Entrepot | ( ObjetSurCoord[e,c
 fact UnDroneReceptacle {all d1:Drone | all r:Receptacle | all t:Time | no d2 : Drone | d1 != d2 && d1.coord.t = r && d2.coord.t = r }
 fact UnDroneNoeud {all d1:Drone | all n:Noeud |all t:Time |no d2 : Drone |d1 != d2 && d1.coord.t = n && d2.coord.t = n }
 fact ReceptacleVoisinEntrepot {all e: Entrepot | some r: Receptacle| Voisin[e,r]}
-fact PoidSupZero{all p: Produit | gt[p.poid,0]}
+fact PoidSupZero{all c: Commande | gt[c.poid,0]}
+fact PoidInfPoidMax{}
 
 fact start{
 	all d: Drone | all e: Entrepot | init [first, d, e] -- init pour le premier time de l'ordering Time
