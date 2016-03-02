@@ -15,7 +15,8 @@ one sig Entrepot extends Coordonnees{}
 sig Receptacle extends Coordonnees{}
 
 some sig Drone{
-	coord: Coordonnees one -> Time
+	coord: Coordonnees one -> Time,
+	capacite: Int one -> Time
 }
 
 sig Time{}
@@ -57,8 +58,9 @@ pred DronesSimilaires[d1,d2 : Drone]{
 	d1 = d2
 }
 
-pred init [t: Time] { -- on doit faire l'init pour un Time t
+pred init [t: Time, d:Drone] { -- on doit faire l'init pour un Time t
 	-- tous les drones a l'entrepot
+	d.capacite.t = 3
 }
 
 pred deplacerDrone [t, t': Time, d: Drone] { -- ce qui se passe quand qqun entre dans la chambre
@@ -88,8 +90,8 @@ fact UnDroneNoeud {all d1:Drone | all n:Noeud |all t:Time |no d2 : Drone |d1 != 
 fact ReceptacleVoisinEntrepot {all e: Entrepot | some r: Receptacle| Voisin[e,r]}
 
 
-fact start{
-	init [first] -- init pour le premier time de l'ordering Time
+fact start{all d: Drone |
+	init [first,d] -- init pour le premier time de l'ordering Time
 	all t: Time-last | let t' = t.next | -- pour tous les Time t on definit le Time suivant t'
 		some d: Drone |
 			deplacerDrone [t, t', d]
