@@ -107,6 +107,8 @@ assert CoordonneesAvecReceptacle {some c: Coordonnees | one r: Receptacle | Obje
 -- false
 assert CoordonneesPlusiersReceptacles {all c: Coordonnees | some r: Receptacle | ObjetSurCoord [r,c]}
 --check CoordonneesPlusiersReceptacles
+assert ReceptacleNonOrigine {all e: Entrepot | no r: Receptacle | eq[distanceDeManhattan[e ,r], 0]}
+--check ReceptacleNonOrigine
 -- FAUX :assert DNBsupZero{some c: Coordonnees| one d: Drone | DronesSimilaires[c.drone, d] }
 --check DNBsupZero
 assert DronePosittion {}
