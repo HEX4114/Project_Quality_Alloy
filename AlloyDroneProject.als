@@ -23,7 +23,6 @@ some sig Drone{
 	cmd : Commande
 }
 
-
 some sig Commande{
 	destination: one Receptacle,
 	poid: Int,
@@ -86,7 +85,6 @@ fact EntrepotNonIsole {all e: Entrepot | some r: Receptacle | Atteignable[e, r]}
 fact EntrepotDisjoint{one e: Entrepot | all r: Receptacle | ! eq[distanceDeManhattan[e ,r], 0]}
 fact EcartReceptacles {all r: Receptacle | some r2: Receptacle | Atteignable[r,r2] &&r!=r2}
 fact NoeudsDisjoints{all n1: Coordonnees| no n2: Coordonnees | Superpose[n1, n2]}
-fact EntrepotOrigine {one c: Coordonnees | one e: Entrepot | ( ObjetSurCoord[e,c] && eq[e.x,0] && eq[e.y,0])}
 fact UnDroneReceptacle {all d1:Drone | all r:Receptacle | all t:Time | no d2 : Drone | d1 != d2 && d1.coord.t = r && d2.coord.t = r }
 fact UnDroneNoeud {all d1:Drone | all n:Noeud |all t:Time |no d2 : Drone |d1 != d2 && d1.coord.t = n && d2.coord.t = n }
 fact PoidSupZero{all c: Commande | gt[c.poid,0]}
@@ -96,8 +94,8 @@ fact BatterieAugmenteE{all d: Drone | lone e: Entrepot | all t: Time-last | let 
 fact BatterieAugmenteR{all d: Drone | lone r: Receptacle| all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = r && d.batterie.t' = add[d.batterie.t,1] && d.batterie.t<=3}
 fact BatterieFixeN{all d: Drone | lone n: Noeud | all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = n && d.batterie.t' = d.batterie.t}
 
-fact LivraisonDerniereCoord {all d: Drone |d.cmd.chemin.last = d.cmd.destination}
-fact LivraisonPremiereCoord {all d: Drone | all e: Entrepot | d.cmd.chemin.first = e}
+fact LivraisonDerniereCoord {all c: Commande |c.chemin.last = c.destination}
+fact LivraisonPremiereCoord {all c: Commande | all e: Entrepot | c.chemin.first = e}
 fact LivraisonEcartCoord {all c: Commande | InstancierChemin[c.chemin]}
 
 fact start{
@@ -145,6 +143,6 @@ assert accesDestination{all d:Drone | one t: Time | d.cmd.destination = d.coord.
 pred go {}
 --run go
 //run go for 10 but exactly 13 Drone, 5 Int
-run go for 8 but exactly 1 Drone, exactly 1 Commande, exactly 3 Time, 5 Int
+run go for 8 but exactly 2 Drone, exactly 2 Commande, exactly 3 Time, 5 Int
 
 
