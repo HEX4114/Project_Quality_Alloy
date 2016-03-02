@@ -124,8 +124,10 @@ assert ReceptacleNonOrigine {all e: Entrepot | no r: Receptacle | eq[distanceDeM
 --check ReceptacleNonOrigine
 -- FAUX :assert DNBsupZero{some c: Coordonnees| one d: Drone | DronesSimilaires[c.drone, d] }
 --check DNBsupZero
-assert DroneEntrepotFirst {all ddd: Drone | all eee:Entrepot | ddd.coord.first = eee}
---check DroneEntrepotFirst
+assert DroneEntrepotFirstR {all ddd: Drone | all rrr:Receptacle | ddd.coord.first != rrr}
+--check DroneEntrepotFirstR
+assert DroneEntrepotFirstN {all ddd: Drone | all nnn:Noeud | ddd.coord.first != nnn}
+--check DroneEntrepotFirstN
 assert ReceptaclesAtteignable{no r1: Receptacle | all r2: Receptacle | nonAtteignable[r1,r2]}
 --check ReceptaclesAtteignable
 assert DronePosittion {}
