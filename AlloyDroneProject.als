@@ -15,7 +15,17 @@ one sig Entrepot extends Coordonnees{}
 sig Receptacle extends Coordonnees{}
 
 some sig Drone{
-	coord: Coordonnees one -> Time
+	coord: Coordonnees one -> Time,
+	capacite: Int one -> Time
+}
+
+sig Produit{
+	poid: Int
+}
+
+sig Commande{
+	p: set Produit,
+	r: one Receptacle
 }
 
 sig Time{}
@@ -59,10 +69,12 @@ pred DronesSimilaires[d1,d2 : Drone]{
 
 pred init [t: Time, d: Drone, e: Entrepot] { -- on doit faire l'init pour un Time t
 	d.coord.t = e -- tous les drones a l'entrepot
+	d.capacite.t = 3
 }
 
 pred deplacerDrone [t, t': Time, d: Drone] { -- ce qui se passe quand qqun entre dans la chambre
-	d.coord.t'.x = add[d.coord.t.x,1]
+	d.coord.t'.x = add[d.coord.t.x,1]&&
+	d.capacite.t' = sub[d.capacite.t, 1]
 
 
 /*	k in g.keys.t -- key du guest au time t
@@ -86,7 +98,6 @@ fact EntrepotOrigine {one c: Coordonnees | one e: Entrepot | ( ObjetSurCoord[e,c
 fact UnDroneReceptacle {all d1:Drone | all r:Receptacle | all t:Time | no d2 : Drone | d1 != d2 && d1.coord.t = r && d2.coord.t = r }
 fact UnDroneNoeud {all d1:Drone | all n:Noeud |all t:Time |no d2 : Drone |d1 != d2 && d1.coord.t = n && d2.coord.t = n }
 fact ReceptacleVoisinEntrepot {all e: Entrepot | some r: Receptacle| Voisin[e,r]}
-
 
 fact start{
 	all d: Drone | all e: Entrepot | init [first, d, e] -- init pour le premier time de l'ordering Time
@@ -115,11 +126,12 @@ assert ReceptacleNonOrigine {all e: Entrepot | no r: Receptacle | eq[distanceDeM
 --check DNBsupZero
 assert DroneEntrepotFirst {all ddd: Drone | all eee:Entrepot | ddd.coord.first = eee}
 --check DroneEntrepotFirst
-
-
+assert ReceptaclesAtteignable{no r1: Receptacle | all r2: Receptacle | nonAtteignable[r1,r2]}
+--check ReceptaclesAtteignable
+assert DronePosittion {}
 
 pred go {}
-run go for 10 but exactly 13 Drone, 5 Int
-//run go for 5 but exactly 2 Drone, exactly 2 Time, 5 Int
+//run go for 10 but exactly 13 Drone, 5 Int
+run go for 5 but exactly 2 Drone, exactly 2 Time, 5 Int
 
 
