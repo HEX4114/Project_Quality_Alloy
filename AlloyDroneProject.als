@@ -57,8 +57,8 @@ pred DronesSimilaires[d1,d2 : Drone]{
 	d1 = d2
 }
 
-pred init [t: Time] { -- on doit faire l'init pour un Time t
-	-- tous les drones a l'entrepot
+pred init [t: Time, d: Drone, e: Entrepot] { -- on doit faire l'init pour un Time t
+	d.coord.t = e -- tous les drones a l'entrepot
 }
 
 pred deplacerDrone [t, t': Time, d: Drone] { -- ce qui se passe quand qqun entre dans la chambre
@@ -89,7 +89,7 @@ fact ReceptacleVoisinEntrepot {all e: Entrepot | some r: Receptacle| Voisin[e,r]
 
 
 fact start{
-	init [first] -- init pour le premier time de l'ordering Time
+	all d: Drone | all e: Entrepot | init [first, d, e] -- init pour le premier time de l'ordering Time
 	all t: Time-last | let t' = t.next | -- pour tous les Time t on definit le Time suivant t'
 		some d: Drone |
 			deplacerDrone [t, t', d]
@@ -113,7 +113,10 @@ assert ReceptacleNonOrigine {all e: Entrepot | no r: Receptacle | eq[distanceDeM
 --check ReceptacleNonOrigine
 -- FAUX :assert DNBsupZero{some c: Coordonnees| one d: Drone | DronesSimilaires[c.drone, d] }
 --check DNBsupZero
-assert DronePosittion {}
+assert DroneEntrepotFirst {all ddd: Drone | all eee:Entrepot | ddd.coord.first = eee}
+--check DroneEntrepotFirst
+
+
 
 pred go {}
 run go for 10 but exactly 13 Drone, 5 Int
