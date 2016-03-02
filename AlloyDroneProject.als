@@ -73,7 +73,8 @@ pred init [t: Time, d:Drone] { -- on doit faire l'init pour un Time t
 }
 
 pred deplacerDrone [t, t': Time, d: Drone] { -- ce qui se passe quand qqun entre dans la chambre
-	d.coord.t'.x = add[d.coord.t.x,1]
+	d.coord.t'.x = add[d.coord.t.x,1]&&
+	d.capacite.t' = sub[d.capacite.t, 1]
 
 
 /*	k in g.keys.t -- key du guest au time t
