@@ -48,9 +48,9 @@ pred ObjetSurCoord [o, c: Coordonnees]{
 	eq[o.x,c.x] && eq[o.y,c.y]
 }
 
-pred DroneUniqueEndroit[d1, d2 : Drone]
+pred DroneUniqueEndroit[d1, d2 : Drone, e : Entrepot]
 {
-	d1 != d2 && d1.coord = d2.coord
+	d1 != d2 && (d1.coord = d2.coord || d1.coord = e && d2.coord = e)
 }
 
 pred DronesSimilaires[d1,d2 : Drone]{
@@ -82,7 +82,8 @@ fact EcartReceptacles {all r: Receptacle | some r2: Receptacle | Atteignable[r,r
 fact NoeudsDisjoints{all n1: Coordonnees| no n2: Coordonnees | Superpose[n1, n2]}
 fact RNBsupZero {some c: Coordonnees | one r: Receptacle | ObjetSurCoord[r,c]}
 fact EntrepotOrigine {one c: Coordonnees | one e: Entrepot | ( ObjetSurCoord[e,c] && eq[e.x,0] && eq[e.y,0])}
-fact DroneLocationUnique {all d1 : Drone| no d2 : Drone| DroneUniqueEndroit[d1,d2]}
+fact UnDroneReceptacle {all d1:Drone | all r:Receptacle | no d2 : Drone | d1 != d2 && d1.coord = r && d2.coord = r }
+fact UnDroneNoeud {all d1:Drone | all n:Noeud | no d2 : Drone | d1 != d2 && d1.coord = n && d2.coord = n }
 
 /*fact{
 	init [first] -- init pour le premier time de l'ordering Time
@@ -107,6 +108,6 @@ assert CoordonneesPlusiersReceptacles {all c: Coordonnees | some r: Receptacle |
 assert DronePosittion {}
 
 pred go {}
-run go for 10 but exactly 10 Drone, exactly 2 Time, 5 Int
+run go for 10 but exactly 13 Drone, 5 Int
 
 
