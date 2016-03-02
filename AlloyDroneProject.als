@@ -23,7 +23,6 @@ some sig Drone{
 	cmd : Commande
 }
 
-
 some sig Commande{
 	destination: one Receptacle,
 	poid: Int,
@@ -95,8 +94,9 @@ fact BatterieAugmenteE{all d: Drone | lone e: Entrepot | all t: Time-last | let 
 fact BatterieAugmenteR{all d: Drone | lone r: Receptacle| all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = r && d.batterie.t' = add[d.batterie.t,1] && d.batterie.t<=3}
 fact BatterieFixeN{all d: Drone | lone n: Noeud | all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = n && d.batterie.t' = d.batterie.t}
 
-fact LivraisonDerniereCoord {all d: Drone | all e: d.cmd.chemin.elems | d.cmd.chemin.last = d.cmd.destination && d.cmd.chemin.idxOf[e] = d.cmd.chemin.lastIdxOf[e]}
-fact LivraisonPremiereCoord {all d: Drone | all e: Entrepot | d.cmd.chemin.first = e}
+
+fact LivraisonDerniereCoord {all c: Commande | all e: c.chemin.elems | c.chemin.last = c.destination && c.chemin.idxOf[e] = c.chemin.lastIdxOf[e]}
+fact LivraisonPremiereCoord {all c: Commande | all e: Entrepot | c.chemin.first = e}
 fact LivraisonEcartCoord {all c: Commande | InstancierChemin[c.chemin]}
 
 fact LivraisonUnMinimumLoinQuandMemeASupprimer{all d: Drone | all e:Entrepot | gt[distanceDeManhattan[e, d.cmd.destination], 2]}
@@ -149,5 +149,6 @@ pred go {}
 --run go
 //run go for 10 but exactly 13 Drone, 5 Int
 run go for 8 but exactly 1 Drone, exactly 1 Commande, exactly 3 Time, exactly 3 Receptacle, 5 Int
+
 
 
