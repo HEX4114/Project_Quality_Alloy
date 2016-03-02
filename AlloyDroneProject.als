@@ -12,13 +12,13 @@ sig Noeud extends Coordonnees {}
 
 one sig Entrepot extends Coordonnees{}
 
-some sig Receptacle extends Coordonnees{}
+some sig Receptacle extends Coordonnees{
 	poidMax: Int	
 }
 
 some sig Drone{
 	coord: Coordonnees one -> Time,
-	capacite: Int one -> Time,
+	batterie: Int one -> Time,
 	poidMax : Int
 }
 
@@ -65,12 +65,12 @@ pred DronesSimilaires[d1,d2 : Drone]{
 
 pred init [t: Time, d: Drone, e: Entrepot] { -- on doit faire l'init pour un Time t
 	d.coord.t = e -- tous les drones a l'entrepot
-	d.capacite.t = 3
+	d.batterie.t = 3
 }
 
 pred deplacerDrone [t, t': Time, d: Drone] {
 	d.coord.t'.x = add[d.coord.t.x,1]&&
-	d.capacite.t' = sub[d.capacite.t, 1]
+	d.batterie.t' = sub[d.batterie.t, 1]
 }
 
 
