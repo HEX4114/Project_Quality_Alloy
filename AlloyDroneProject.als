@@ -120,6 +120,8 @@ assert CoordonneesPlusiersReceptacles {all c: Coordonnees | some r: Receptacle |
 --check CoordonneesPlusiersReceptacles
 assert ReceptacleNonOrigine {all e: Entrepot | no r: Receptacle | eq[distanceDeManhattan[e ,r], 0]}
 --check ReceptacleNonOrigine
+assert ReceptaclesAtteignable{no r1: Receptacle | all r2: Receptacle | nonAtteignable[r1,r2]}
+--check ReceptaclesAtteignable
 assert DronePosittion {}
 
 pred go {}
