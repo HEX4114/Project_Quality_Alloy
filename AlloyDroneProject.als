@@ -15,7 +15,7 @@ one sig Entrepot extends Coordonnees{}
 sig Receptacle extends Coordonnees{}
 
 some sig Drone{
-	coord: one Coordonnees
+	coord: Coordonnees one -> Time
 }
 
 sig Time{}
@@ -40,6 +40,10 @@ pred nonAtteignable[n, m: Coordonnees] {
 	gt[distanceDeManhattan[n, m], 3]
 }
 
+pred Voisin[n,m: Coordonnees]{
+	eq[distanceDeManhattan[n, m], 1]
+}
+
 pred Superpose[n1, n2: Coordonnees]{
 	n1 != n2 && eq[distanceDeManhattan[n1, n2], 0]
 }
@@ -48,46 +52,48 @@ pred ObjetSurCoord [o, c: Coordonnees]{
 	eq[o.x,c.x] && eq[o.y,c.y]
 }
 
-pred DroneUniqueEndroit[d1, d2 : Drone, e : Entrepot]
-{
-	d1 != d2 && (d1.coord = d2.coord || d1.coord = e && d2.coord = e)
-}
 
 pred DronesSimilaires[d1,d2 : Drone]{
 	d1 = d2
 }
 
-/*pred init [t: Time] { -- on doit faire l'init pour un Time t
+pred init [t: Time] { -- on doit faire l'init pour un Time t
 	-- tous les drones a l'entrepot
 }
 
-pred deplacerDrone [t, t': Time, c: Coordonnees] { -- ce qui se passe quand qqun entre dans la chambre
-	d in c.drone.t -- drone a la coord c au Time t
-	let cap = c.drone.cap |
-		(cap = 0 and 
+pred deplacerDrone [t, t': Time, d: Drone] { -- ce qui se passe quand qqun entre dans la chambre
+	d.coord.t'.x = add[d.coord.t.x,1]
+
+
+/*	k in g.keys.t -- key du guest au time t
 	let ck = r.currentKey | -- currentKey de la room
 		(k = ck.t and ck.t' = ck.t) or -- le guest est le meme qu'avant, on change pas la k de la room
 		(k = nextKey[ck.t, r.keys] and ck.t' = k) -- le gust change et la ck de la room prend la valeur de la k de la carte (qui est le next du set de key de la lock) 
 	noRoomChangeExcept [t, t', r] -- ce qui ne doit pas changer
 	noGuestChangeExcept [t, t', none]
-	noFrontDeskChange [t, t']
-	}*/
+	noFrontDeskChange [t, t']*/
+}
 
 
 -- Invariants
 fact {all n: Coordonnees| n.x >=0 && n.x <= 7 && n.y >= 0 && n.y <= 7}
 fact EntrepotNonIsole {all e: Entrepot | some r: Receptacle | Atteignable[e, r]}
-fact EntrepotDisjoint{one e: Entrepot | all r: Receptacle | (e.x != r.x && e.y != r.y)}
+fact EntrepotDisjoint{one e: Entrepot | all r: Receptacle | ! eq[distanceDeManhattan[e ,r], 0]}
 fact EcartReceptacles {all r: Receptacle | some r2: Receptacle | Atteignable[r,r2] &&r!=r2}
 fact NoeudsDisjoints{all n1: Coordonnees| no n2: Coordonnees | Superpose[n1, n2]}
 fact RNBsupZero {some c: Coordonnees | one r: Receptacle | ObjetSurCoord[r,c]}
 fact EntrepotOrigine {one c: Coordonnees | one e: Entrepot | ( ObjetSurCoord[e,c] && eq[e.x,0] && eq[e.y,0])}
-fact UnDroneReceptacle {all d1:Drone | all r:Receptacle | no d2 : Drone | d1 != d2 && d1.coord = r && d2.coord = r }
-fact UnDroneNoeud {all d1:Drone | all n:Noeud | no d2 : Drone | d1 != d2 && d1.coord = n && d2.coord = n }
+fact UnDroneReceptacle {all d1:Drone | all r:Receptacle | all t:Time | no d2 : Drone | d1 != d2 && d1.coord.t = r && d2.t.coord.t = r }
+fact UnDroneNoeud {all d1:Drone | all n:Noeud | no d2 : Drone |all t:Time |d1 != d2 && d1.coord.t = n && d2.t.coord.t = n }
+fact ReceptacleVoisinEntrepot {all e: Entrepot | some r: Receptacle| Voisin[e,r]}
 
-/*fact{
+
+fact start{
 	init [first] -- init pour le premier time de l'ordering Time
-}*/
+	all t: Time-last | let t' = t.next | -- pour tous les Time t on definit le Time suivant t'
+		some d: Drone |
+			deplacerDrone [t, t', d]
+}
 
 -- Assertions
 assert DistanceManthattanPositive{all c1: Coordonnees | no c2: Coordonnees | distanceDeManhattan[c1, c2]<0}
@@ -103,11 +109,14 @@ assert CoordonneesAvecReceptacle {some c: Coordonnees | one r: Receptacle | Obje
 -- false
 assert CoordonneesPlusiersReceptacles {all c: Coordonnees | some r: Receptacle | ObjetSurCoord [r,c]}
 --check CoordonneesPlusiersReceptacles
+assert ReceptacleNonOrigine {all e: Entrepot | no r: Receptacle | eq[distanceDeManhattan[e ,r], 0]}
+--check ReceptacleNonOrigine
 -- FAUX :assert DNBsupZero{some c: Coordonnees| one d: Drone | DronesSimilaires[c.drone, d] }
 --check DNBsupZero
 assert DronePosittion {}
 
 pred go {}
 run go for 10 but exactly 13 Drone, 5 Int
+//run go for 5 but exactly 2 Drone, exactly 2 Time, 5 Int
 
 
