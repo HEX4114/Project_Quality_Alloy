@@ -25,7 +25,7 @@ some sig Drone{
 
 some sig Commande{
 	r: one Receptacle,
-	poid: Int
+	produits: set Int
 }
 
 sig Time{}
@@ -84,8 +84,10 @@ fact EntrepotOrigine {one c: Coordonnees | one e: Entrepot | ( ObjetSurCoord[e,c
 fact UnDroneReceptacle {all d1:Drone | all r:Receptacle | all t:Time | no d2 : Drone | d1 != d2 && d1.coord.t = r && d2.coord.t = r }
 fact UnDroneNoeud {all d1:Drone | all n:Noeud |all t:Time |no d2 : Drone |d1 != d2 && d1.coord.t = n && d2.coord.t = n }
 fact ReceptacleVoisinEntrepot {all e: Entrepot | some r: Receptacle| Voisin[e,r]}
-fact PoidSupZero{all c: Commande | gt[c.poid,0]}
-fact PoidInfPoidMax{}
+fact PoidsSupZero{all c: Commande | all p:c.produits | gt[p,0]}
+fact PoidMaxSupZero{all d: Drone| gt[d.poidMax,0]}
+--fact PoidMaxReceptacleSupZero{all d: Drone| gt[d.poidMax,0]}
+--fact PoidInfPoidMax{}
 
 fact start{
 	all d: Drone | all e: Entrepot | init [first, d, e] -- init pour le premier time de l'ordering Time
