@@ -19,6 +19,15 @@ some sig Drone{
 	capacite: Int one -> Time
 }
 
+sig Produit{
+	poid: Int
+}
+
+sig Commande{
+	p: set Produit,
+	r: one Receptacle
+}
+
 sig Time{}
 
 -- Fonctions Utilitaires
@@ -113,12 +122,12 @@ assert CoordonneesPlusiersReceptacles {all c: Coordonnees | some r: Receptacle |
 --check CoordonneesPlusiersReceptacles
 assert ReceptacleNonOrigine {all e: Entrepot | no r: Receptacle | eq[distanceDeManhattan[e ,r], 0]}
 --check ReceptacleNonOrigine
--- FAUX :assert DNBsupZero{some c: Coordonnees| one d: Drone | DronesSimilaires[c.drone, d] }
---check DNBsupZero
+assert ReceptaclesAtteignable{no r1: Receptacle | all r2: Receptacle | nonAtteignable[r1,r2]}
+--check ReceptaclesAtteignable
 assert DronePosittion {}
 
 pred go {}
-run go for 10 but exactly 13 Drone, 5 Int
-//run go for 5 but exactly 2 Drone, exactly 2 Time, 5 Int
+//run go for 10 but exactly 13 Drone, 5 Int
+run go for 5 but exactly 2 Drone, exactly 2 Time, 5 Int
 
 
