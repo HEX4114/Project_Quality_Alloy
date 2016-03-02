@@ -1,6 +1,6 @@
 module projet
 
-open util/ordering[Time]
+open util/ordering[Time] as to
 open util/integer
 
 -----SIGNATURES-----
@@ -19,13 +19,15 @@ some sig Receptacle extends Coordonnees{
 some sig Drone{
 	coord: Coordonnees one -> Time,
 	batterie: Int one -> Time,
-	poidMax : Int
+	poidMax : Int,
+	cmd : Commande
 }
 
 
 some sig Commande{
-	r: one Receptacle,
-	poid: Int
+	destination: one Receptacle,
+	poid: Int,
+	chemin : seq Coordonnees
 }
 
 sig Time{}
@@ -72,6 +74,12 @@ pred deplacerDrone [t, t': Time, d: Drone] {
 	d.batterie.t' = sub[d.batterie.t, 1]
 }
 
+pred InstancierChemin [s: seq Coordonnees]{
+	let n = s.inds |
+	all x: Int & n |
+	Voisin[s[x], s[add[x,1]]]
+}
+
 -----Invariants-----
 fact {all n: Coordonnees| n.x >=0 && n.x <= 7 && n.y >= 0 && n.y <= 7}
 fact EntrepotNonIsole {all e: Entrepot | some r: Receptacle | Atteignable[e, r]}
@@ -81,7 +89,6 @@ fact NoeudsDisjoints{all n1: Coordonnees| no n2: Coordonnees | Superpose[n1, n2]
 fact EntrepotOrigine {one c: Coordonnees | one e: Entrepot | ( ObjetSurCoord[e,c] && eq[e.x,0] && eq[e.y,0])}
 fact UnDroneReceptacle {all d1:Drone | all r:Receptacle | all t:Time | no d2 : Drone | d1 != d2 && d1.coord.t = r && d2.coord.t = r }
 fact UnDroneNoeud {all d1:Drone | all n:Noeud |all t:Time |no d2 : Drone |d1 != d2 && d1.coord.t = n && d2.coord.t = n }
-fact ReceptacleVoisinEntrepot {all e: Entrepot | some r: Receptacle| Voisin[e,r]}
 fact PoidSupZero{all c: Commande | gt[c.poid,0]}
 fact PoidInfPoidMax{}
 fact BatterieMaxMin{all d: Drone | all t:Time | d.batterie.t>=0 && d.batterie.t<=3}
@@ -89,6 +96,9 @@ fact BatterieAugmenteE{all d: Drone | lone e: Entrepot | all t: Time-last | let 
 fact BatterieAugmenteR{all d: Drone | lone r: Receptacle| all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = r && d.batterie.t' = add[d.batterie.t,1] && d.batterie.t<=3}
 fact BatterieFixeN{all d: Drone | lone n: Noeud | all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = n && d.batterie.t' = d.batterie.t}
 
+fact LivraisonDerniereCoord {all d: Drone |d.cmd.chemin.last = d.cmd.destination}
+fact LivraisonPremiereCoord {all d: Drone | all e: Entrepot | d.cmd.chemin.first = e}
+fact LivraisonEcartCoord {all c: Commande | InstancierChemin[c.chemin]}
 
 fact start{
 	all d: Drone | all e: Entrepot | init [first, d, e] -- init pour le premier time de l'ordering Time
@@ -126,9 +136,15 @@ assert NoeudUnDrone{all n:Noeud | all t:Time|lone d:Drone| d.coord.t = n}
 --check NoeudUnDrone
 assert DronePosittion {}
 
+--Est ce qu'on va bin a la destination ?
+assert accesDestination{all d:Drone | one t: Time | d.cmd.destination = d.coord.t}
+--check accesDestination
+
+
 -----RUN-----
 pred go {}
+--run go
 //run go for 10 but exactly 13 Drone, 5 Int
-run go for 5 but exactly 2 Drone, exactly 5 Time, 5 Int
+run go for 8 but exactly 1 Drone, exactly 1 Commande, exactly 3 Time, 5 Int
 
 
