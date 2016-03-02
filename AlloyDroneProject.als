@@ -13,19 +13,19 @@ sig Noeud extends Coordonnees {}
 one sig Entrepot extends Coordonnees{}
 
 some sig Receptacle extends Coordonnees{}
+	poidMax: Int	
+}
 
 some sig Drone{
 	coord: Coordonnees one -> Time,
-	capacite: Int one -> Time
+	capacite: Int one -> Time,
+	poidMax : Int
 }
 
-sig Produit{
+
+some sig Commande{
+	r: one Receptacle,
 	poid: Int
-}
-
-sig Commande{
-	p: set Produit,
-	r: one Receptacle
 }
 
 sig Time{}
@@ -84,6 +84,8 @@ fact EntrepotOrigine {one c: Coordonnees | one e: Entrepot | ( ObjetSurCoord[e,c
 fact UnDroneReceptacle {all d1:Drone | all r:Receptacle | all t:Time | no d2 : Drone | d1 != d2 && d1.coord.t = r && d2.coord.t = r }
 fact UnDroneNoeud {all d1:Drone | all n:Noeud |all t:Time |no d2 : Drone |d1 != d2 && d1.coord.t = n && d2.coord.t = n }
 fact ReceptacleVoisinEntrepot {all e: Entrepot | some r: Receptacle| Voisin[e,r]}
+fact PoidSupZero{all c: Commande | gt[c.poid,0]}
+fact PoidInfPoidMax{}
 
 fact start{
 	all d: Drone | all e: Entrepot | init [first, d, e] -- init pour le premier time de l'ordering Time
@@ -113,6 +115,10 @@ assert DroneEntrepotFirstN {all ddd: Drone | all nnn:Noeud | ddd.coord.first != 
 --check DroneEntrepotFirstN
 assert ReceptaclesAtteignable{no r1: Receptacle | all r2: Receptacle | nonAtteignable[r1,r2]}
 --check ReceptaclesAtteignable
+assert ReceptacleUnDrone{all r:Receptacle | all t:Time|lone d:Drone| d.coord.t = r}
+--check ReceptacleUnDrone
+assert NoeudUnDrone{all n:Noeud | all t:Time|lone d:Drone| d.coord.t = n}
+--check NoeudUnDrone
 assert DronePosittion {}
 
 -----RUN-----
