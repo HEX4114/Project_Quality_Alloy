@@ -106,10 +106,12 @@ assert EntrepotExist {one c: Coordonnees | one e: Entrepot | ObjetSurCoord [e,c]
 --check EntrepotExist
 assert CoordonneeSansReceptacle {some c: Coordonnees | no r: Receptacle | ObjetSurCoord[r,c]}
 --check CoordonneeSansReceptacle
-assert CoordonneesAvecReceptacle {some c: Coordonnees | one r: Receptacle | ObjetSurCoord [r,c]&&!eq[c.x,0]&&!eq[c.y,0]}
---check CoordonneesAvecReceptacle
-assert CoordonneesPlusiersReceptacles {all c: Coordonnees | some r: Receptacle | ObjetSurCoord [r,c]}
+assert CoordonneesPlusiersReceptacles {no c: Coordonnees | one r1: Receptacle | one r2: Receptacle | ObjetSurCoord [r1,c] && ObjetSurCoord[r2,c] && r1 != r2}
 --check CoordonneesPlusiersReceptacles
+assert RNBsupZero {some c: Coordonnees | one r: Receptacle | ObjetSurCoord [r,c]&&!eq[c.x,0]&&!eq[c.y,0]}
+--check RNBsupZero
+assert DNBsupZero{all t: Time | some c:Coordonnees | some d: Drone | eq[distanceDeManhattan[d.coord.t , c],0]}
+--check DNBsupZero
 assert ReceptacleNonOrigine {all e: Entrepot | no r: Receptacle | eq[distanceDeManhattan[e ,r], 0]}
 --check ReceptacleNonOrigine
 assert DroneEntrepotFirstR {all ddd: Drone | all rrr:Receptacle | ddd.coord.first != rrr}
