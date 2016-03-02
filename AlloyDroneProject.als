@@ -40,6 +40,10 @@ pred nonAtteignable[n, m: Coordonnees] {
 	gt[distanceDeManhattan[n, m], 3]
 }
 
+pred Voisin[n,m: Coordonnees]{
+	eq[distanceDeManhattan[n, m], 1]
+}
+
 pred Superpose[n1, n2: Coordonnees]{
 	n1 != n2 && eq[distanceDeManhattan[n1, n2], 0]
 }
@@ -77,11 +81,12 @@ pred deplacerDrone [t, t': Time, c: Coordonnees] { -- ce qui se passe quand qqun
 -- Invariants
 fact {all n: Coordonnees| n.x >=0 && n.x <= 7 && n.y >= 0 && n.y <= 7}
 fact EntrepotNonIsole {all e: Entrepot | some r: Receptacle | Atteignable[e, r]}
-fact EntrepotDisjoint{one e: Entrepot | all r: Receptacle | (e.x != r.x && e.y != r.y)}
+fact EntrepotDisjoint{one e: Entrepot | all r: Receptacle | ! eq[distanceDeManhattan[e ,r], 0]}
 fact EcartReceptacles {all r: Receptacle | some r2: Receptacle | Atteignable[r,r2] &&r!=r2}
 fact NoeudsDisjoints{all n1: Coordonnees| no n2: Coordonnees | Superpose[n1, n2]}
 fact RNBsupZero {some c: Coordonnees | one r: Receptacle | ObjetSurCoord[r,c]}
 fact EntrepotOrigine {one c: Coordonnees | one e: Entrepot | ( ObjetSurCoord[e,c] && eq[e.x,0] && eq[e.y,0])}
+fact ReceptacleVoisinEntrepot {all e: Entrepot | some r: Receptacle| Voisin[e,r]}
 fact DroneLocationUnique {all d1 : Drone| no d2 : Drone| DroneUniqueEndroit[d1,d2]}
 
 /*fact{
