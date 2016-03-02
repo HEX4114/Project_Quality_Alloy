@@ -128,6 +128,10 @@ assert DroneEntrepotFirst {all ddd: Drone | all eee:Entrepot | ddd.coord.first =
 --check DroneEntrepotFirst
 assert ReceptaclesAtteignable{no r1: Receptacle | all r2: Receptacle | nonAtteignable[r1,r2]}
 --check ReceptaclesAtteignable
+assert ReceptacleUnDrone{all r:Receptacle | all t:Time|lone d:Drone| d.coord.t = r}
+--check ReceptacleUnDrone
+assert NoeudUnDrone{all n:Noeud | all t:Time|lone d:Drone| d.coord.t = n}
+--check NoeudUnDrone
 assert DronePosittion {}
 
 pred go {}
