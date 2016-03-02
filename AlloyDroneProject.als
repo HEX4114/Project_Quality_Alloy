@@ -64,13 +64,14 @@ pred DronesSimilaires[d1,d2 : Drone]{
 	d1 = d2
 }
 
-pred init [t: Time, d:Drone] { -- on doit faire l'init pour un Time t
-	-- tous les drones a l'entrepot
+pred init [t: Time, d: Drone, e: Entrepot] { -- on doit faire l'init pour un Time t
+	d.coord.t = e -- tous les drones a l'entrepot
 	d.capacite.t = 3
 }
 
 pred deplacerDrone [t, t': Time, d: Drone] { -- ce qui se passe quand qqun entre dans la chambre
-	d.coord.t'.x = add[d.coord.t.x,1]
+	d.coord.t'.x = add[d.coord.t.x,1]&&
+	d.capacite.t' = sub[d.capacite.t, 1]
 
 
 /*	k in g.keys.t -- key du guest au time t
@@ -96,9 +97,8 @@ fact UnDroneNoeud {all d1:Drone | all n:Noeud |all t:Time |no d2 : Drone |d1 != 
 fact ReceptacleVoisinEntrepot {all e: Entrepot | some r: Receptacle| Voisin[e,r]}
 fact PoidSupZero{all p: Produit | gt[p.poid,0]}
 
-
-fact start{all d: Drone |
-	init [first,d] -- init pour le premier time de l'ordering Time
+fact start{
+	all d: Drone | all e: Entrepot | init [first, d, e] -- init pour le premier time de l'ordering Time
 	all t: Time-last | let t' = t.next | -- pour tous les Time t on definit le Time suivant t'
 		some d: Drone |
 			deplacerDrone [t, t', d]
@@ -120,6 +120,12 @@ assert CoordonneesPlusiersReceptacles {all c: Coordonnees | some r: Receptacle |
 --check CoordonneesPlusiersReceptacles
 assert ReceptacleNonOrigine {all e: Entrepot | no r: Receptacle | eq[distanceDeManhattan[e ,r], 0]}
 --check ReceptacleNonOrigine
+-- FAUX :assert DNBsupZero{some c: Coordonnees| one d: Drone | DronesSimilaires[c.drone, d] }
+--check DNBsupZero
+assert DroneEntrepotFirstR {all ddd: Drone | all rrr:Receptacle | ddd.coord.first != rrr}
+--check DroneEntrepotFirstR
+assert DroneEntrepotFirstN {all ddd: Drone | all nnn:Noeud | ddd.coord.first != nnn}
+--check DroneEntrepotFirstN
 assert ReceptaclesAtteignable{no r1: Receptacle | all r2: Receptacle | nonAtteignable[r1,r2]}
 --check ReceptaclesAtteignable
 assert DronePosittion {}
