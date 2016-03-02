@@ -18,6 +18,15 @@ some sig Drone{
 	coord: Coordonnees one -> Time
 }
 
+sig Produit{
+	poid: Int
+}
+
+sig Commande{
+	p: set Produit,
+	r: one Receptacle
+}
+
 sig Time{}
 
 -- Fonctions Utilitaires
@@ -116,7 +125,7 @@ assert ReceptacleNonOrigine {all e: Entrepot | no r: Receptacle | eq[distanceDeM
 assert DronePosittion {}
 
 pred go {}
-run go for 10 but exactly 13 Drone, 5 Int
-//run go for 5 but exactly 2 Drone, exactly 2 Time, 5 Int
+//run go for 10 but exactly 13 Drone, 5 Int
+run go for 5 but exactly 2 Drone, exactly 2 Time, 5 Int
 
 
