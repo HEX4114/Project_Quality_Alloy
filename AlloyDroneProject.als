@@ -64,15 +64,13 @@ pred DronesSimilaires[d1,d2 : Drone]{
 }
 
 pred init [t: Time, d: Drone, e: Entrepot] { -- on doit faire l'init pour un Time t
-	d.coord.t = e -- tous les drones a l'entrepot
-	d.batterie.t = 3
+	d.coord.t = e && 	d.batterie.t = 3 -- tous les drones a l'entrepot et chargés
 }
 
 pred deplacerDrone [t, t': Time, d: Drone] {
 	d.coord.t'.x = add[d.coord.t.x,1]&&
 	d.batterie.t' = sub[d.batterie.t, 1]
 }
-
 
 -----Invariants-----
 fact {all n: Coordonnees| n.x >=0 && n.x <= 7 && n.y >= 0 && n.y <= 7}
@@ -86,6 +84,11 @@ fact UnDroneNoeud {all d1:Drone | all n:Noeud |all t:Time |no d2 : Drone |d1 != 
 fact ReceptacleVoisinEntrepot {all e: Entrepot | some r: Receptacle| Voisin[e,r]}
 fact PoidSupZero{all c: Commande | gt[c.poid,0]}
 fact PoidInfPoidMax{}
+fact BatterieMaxMin{all d: Drone | all t:Time | d.batterie.t>=0 && d.batterie.t<=3}
+fact BatterieAugmenteE{all d: Drone | lone e: Entrepot | all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = e && d.batterie.t' = add[d.batterie.t,1] && d.batterie.t<=3} --Attention au <= ou <, dépendra de la fonction déplacer.
+fact BatterieAugmenteR{all d: Drone | lone r: Receptacle| all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = r && d.batterie.t' = add[d.batterie.t,1] && d.batterie.t<=3}
+fact BatterieFixeN{all d: Drone | lone n: Noeud | all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = n && d.batterie.t' = d.batterie.t}
+
 
 fact start{
 	all d: Drone | all e: Entrepot | init [first, d, e] -- init pour le premier time de l'ordering Time
