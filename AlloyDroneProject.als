@@ -23,7 +23,6 @@ some sig Drone{
 	cmd : Commande
 }
 
-
 some sig Commande{
 	destination: one Receptacle,
 	poid: Int,
@@ -102,9 +101,10 @@ fact PoidInfPoidMax{}
 fact BatterieMaxMin{all d: Drone | all t:Time | d.batterie.t>=0 && d.batterie.t<=3}
 fact BatterieVide{all d: Drone | some r: Receptacle | some e: Entrepot | all t: Time | (d.batterie.t = 0 && (d.coord.t = r || d.coord.t = e)) || (d.batterie.t > 0)} --Si batterie = 0 alors le drône doit être sur "r" ou "e"
 --Livraisons
-fact LivraisonDerniereCoord {all d: Drone |d.cmd.chemin.last = d.cmd.destination}
-fact LivraisonPremiereCoord {all d: Drone | all e: Entrepot | d.cmd.chemin.first = e}
+fact LivraisonDerniereCoord {all c: Commande | all e: c.chemin.elems | c.chemin.last = c.destination && c.chemin.idxOf[e] = c.chemin.lastIdxOf[e]}
+fact LivraisonPremiereCoord {all c: Commande | all e: Entrepot | c.chemin.first = e}
 fact LivraisonEcartCoord {all c: Commande | InstancierChemin[c.chemin]}
+fact LivraisonUnMinimumLoinQuandMemeASupprimer{all d: Drone | all e:Entrepot | gt[distanceDeManhattan[e, d.cmd.destination], 2]}
 --Start
 fact start{
 	all d: Drone | all e: Entrepot | init [first, d, e] 	--Init pour le premier time de l'ordering Time
@@ -144,12 +144,15 @@ assert NoeudUnDrone{all n:Noeud | all t:Time|lone d:Drone| d.coord.t = n}
 --check NoeudUnDrone
 assert accesDestination{all d:Drone | one t: Time | d.cmd.destination = d.coord.t} --Est ce qu'on va bien a la destination ?
 --check accesDestination
-
+assert UniciteEtapeLivraison{all d:Drone | !d.cmd.chemin.hasDups}
+--check UniciteEtapeLivraison
 
 -----RUN-----
 pred go {}
 --run go
 //run go for 10 but exactly 13 Drone, 5 Int
-run go for 8 but exactly 2 Drone, exactly 2 Commande, exactly 8 Time, 5 Int
+run go for 8 but exactly 1 Drone, exactly 1 Commande, exactly 8 Time, exactly 3 Receptacle, 5 Int
+
+
 
 
