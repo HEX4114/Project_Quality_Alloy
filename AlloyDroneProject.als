@@ -65,11 +65,11 @@ pred DronesSimilaires[d1,d2 : Drone]{
 	d1 = d2
 }
 
-pred init [t: Time, d: Drone, e: Entrepot] { -- on doit faire l'init pour un Time t
-	d.coord.t = e && 	d.batterie.t = 3 -- tous les drones a l'entrepot et chargés
+pred init [t: Time, d: Drone, e: Entrepot] { 	--On doit faire l'init pour un Time t
+	d.coord.t = e && 	d.batterie.t = 3 			--Tous les drones a l'entrepot et chargés
 }
 
-pred deplacerDrone [t, t': Time, d: Drone] {
+pred DeplacerDrone [t, t': Time, d: Drone] {
 	d.coord.t'.x = add[d.coord.t.x,1]&&
 	d.batterie.t' = sub[d.batterie.t, 1]
 }
@@ -80,31 +80,39 @@ pred InstancierChemin [s: seq Coordonnees]{
 	Voisin[s[x], s[add[x,1]]]
 }
 
+pred RechargerBatterie [t, t': Time, d: Drone, c: Coordonnees]{ 																--Si le drône est à l'entrepôt ou sur un receptacle et que sa batterie 
+	d.coord.t = c and d.batterie.t<3 and d.coord.t' = d.coord.t and d.batterie.t' = add[d.batterie.t,1] 	--n'est pas pleine alors il y reste jusqu'à la charge complète
+}
+
 -----Invariants-----
+--Limites coordonnées
 fact {all n: Coordonnees| n.x >=0 && n.x <= 7 && n.y >= 0 && n.y <= 7}
+--Entrepôt
 fact EntrepotNonIsole {all e: Entrepot | some r: Receptacle | Atteignable[e, r]}
 fact EntrepotDisjoint{one e: Entrepot | all r: Receptacle | ! eq[distanceDeManhattan[e ,r], 0]}
+--Réceptacles et noeuds
 fact EcartReceptacles {all r: Receptacle | some r2: Receptacle | Atteignable[r,r2] &&r!=r2}
 fact NoeudsDisjoints{all n1: Coordonnees| no n2: Coordonnees | Superpose[n1, n2]}
-fact EntrepotOrigine {one c: Coordonnees | one e: Entrepot | ( ObjetSurCoord[e,c] && eq[e.x,0] && eq[e.y,0])}
 fact UnDroneReceptacle {all d1:Drone | all r:Receptacle | all t:Time | no d2 : Drone | d1 != d2 && d1.coord.t = r && d2.coord.t = r }
 fact UnDroneNoeud {all d1:Drone | all n:Noeud |all t:Time |no d2 : Drone |d1 != d2 && d1.coord.t = n && d2.coord.t = n }
+--Poids
 fact PoidSupZero{all c: Commande | gt[c.poid,0]}
 fact PoidInfPoidMax{}
+--Batteries
 fact BatterieMaxMin{all d: Drone | all t:Time | d.batterie.t>=0 && d.batterie.t<=3}
-fact BatterieAugmenteE{all d: Drone | lone e: Entrepot | all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = e && d.batterie.t' = add[d.batterie.t,1] && d.batterie.t<=3} --Attention au <= ou <, dépendra de la fonction déplacer.
-fact BatterieAugmenteR{all d: Drone | lone r: Receptacle| all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = r && d.batterie.t' = add[d.batterie.t,1] && d.batterie.t<=3}
-fact BatterieFixeN{all d: Drone | lone n: Noeud | all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = n && d.batterie.t' = d.batterie.t}
-
+fact BatterieVide{all d: Drone | some r: Receptacle | some e: Entrepot | all t: Time | (d.batterie.t = 0 && (d.coord.t = r || d.coord.t = e)) || (d.batterie.t > 0)} --Si batterie = 0 alors le drône doit être sur "r" ou "e"
+--Livraisons
 fact LivraisonDerniereCoord {all d: Drone |d.cmd.chemin.last = d.cmd.destination}
 fact LivraisonPremiereCoord {all d: Drone | all e: Entrepot | d.cmd.chemin.first = e}
 fact LivraisonEcartCoord {all c: Commande | InstancierChemin[c.chemin]}
-
+--Start
 fact start{
-	all d: Drone | all e: Entrepot | init [first, d, e] -- init pour le premier time de l'ordering Time
-	all t: Time-last | let t' = t.next | -- pour tous les Time t on definit le Time suivant t'
-		some d: Drone |
-			deplacerDrone [t, t', d]
+	all d: Drone | all e: Entrepot | init [first, d, e] 	--Init pour le premier time de l'ordering Time
+	all t: Time-last | let t' = t.next | 						--Pour tous les Time t on definit le Time suivant t'
+		all d: Drone | some r: Receptacle | some e: Entrepot |
+			RechargerBatterie[t,t',d,r] or
+			RechargerBatterie[t,t',d,e] or
+			DeplacerDrone [t, t', d]		
 }
 
 -----ASSERTIONS-----
@@ -134,10 +142,7 @@ assert ReceptacleUnDrone{all r:Receptacle | all t:Time|lone d:Drone| d.coord.t =
 --check ReceptacleUnDrone
 assert NoeudUnDrone{all n:Noeud | all t:Time|lone d:Drone| d.coord.t = n}
 --check NoeudUnDrone
-assert DronePosittion {}
-
---Est ce qu'on va bin a la destination ?
-assert accesDestination{all d:Drone | one t: Time | d.cmd.destination = d.coord.t}
+assert accesDestination{all d:Drone | one t: Time | d.cmd.destination = d.coord.t} --Est ce qu'on va bien a la destination ?
 --check accesDestination
 
 
@@ -145,6 +150,6 @@ assert accesDestination{all d:Drone | one t: Time | d.cmd.destination = d.coord.
 pred go {}
 --run go
 //run go for 10 but exactly 13 Drone, 5 Int
-run go for 8 but exactly 1 Drone, exactly 1 Commande, exactly 3 Time, 5 Int
+run go for 8 but exactly 2 Drone, exactly 2 Commande, exactly 8 Time, 5 Int
 
 
