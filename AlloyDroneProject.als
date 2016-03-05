@@ -68,15 +68,38 @@ pred init [t: Time, d: Drone, e: Entrepot] { -- on doit faire l'init pour un Tim
 	d.coord.t = e && 	d.batterie.t = 3 -- tous les drones a l'entrepot et chargés
 }
 
-pred deplacerDrone [t, t': Time, d: Drone] {
-	d.coord.t'.x = add[d.coord.t.x,1]&&
-	d.batterie.t' = sub[d.batterie.t, 1]
+pred ActionDrone [t, t': Time, d: Drone] {
+	some r:Receptacle | all e:Entrepot |
+	((d.batterie.t < 3 && (d.coord.t in r || d.coord.t in e))
+	implies (
+		Recharger[t, t', d]
+	)else (
+		--Attendre[t, t', d]
+		Deplacer [t, t', d]
+	))
+}
+
+pred Deplacer [t, t': Time, d: Drone]{
+	let IndActuellesCoord = d.cmd.chemin.idxOf[d.coord.t] |
+		d.coord.t =  d.cmd.chemin[IndActuellesCoord] &&
+		d.coord.t' = d.cmd.chemin[add[IndActuellesCoord,1]] &&
+		d.batterie.t' = sub[d.batterie.t, 1]
 }
 
 pred InstancierChemin [s: seq Coordonnees]{
 	let n = s.inds |
 	all x: Int & n |
 	Voisin[s[x], s[add[x,1]]]
+}
+
+pred Attendre [t, t' :Time, d:Drone]{
+	d.coord.t' = d.coord.t &&
+	d.batterie.t' = d.batterie.t
+}
+
+pred Recharger [t, t' :Time, d:Drone]{
+	d.coord.t' = d.coord.t &&
+	d.batterie.t' = add[d.batterie.t, 1]
 }
 
 -----Invariants-----
@@ -90,9 +113,9 @@ fact UnDroneNoeud {all d1:Drone | all n:Noeud |all t:Time |no d2 : Drone |d1 != 
 fact PoidSupZero{all c: Commande | gt[c.poid,0]}
 fact PoidInfPoidMax{}
 fact BatterieMaxMin{all d: Drone | all t:Time | d.batterie.t>=0 && d.batterie.t<=3}
-fact BatterieAugmenteE{all d: Drone | lone e: Entrepot | all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = e && d.batterie.t' = add[d.batterie.t,1] && d.batterie.t<=3} --Attention au <= ou <, dépendra de la fonction déplacer.
-fact BatterieAugmenteR{all d: Drone | lone r: Receptacle| all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = r && d.batterie.t' = add[d.batterie.t,1] && d.batterie.t<=3}
-fact BatterieFixeN{all d: Drone | lone n: Noeud | all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = n && d.batterie.t' = d.batterie.t}
+--fact BatterieAugmenteE{all d: Drone | lone e: Entrepot | all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = e && d.batterie.t' = add[d.batterie.t,1] && d.batterie.t<=3} --Attention au <= ou <, dépendra de la fonction déplacer.
+--fact BatterieAugmenteR{all d: Drone | lone r: Receptacle| all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = r && d.batterie.t' = add[d.batterie.t,1] && d.batterie.t<=3}
+--fact BatterieFixeN{all d: Drone | lone n: Noeud | all t: Time-last | let t' = t.next | d.coord.t = d.coord.t' && d.coord.t = n && d.batterie.t' = d.batterie.t}
 
 
 fact LivraisonDerniereCoord {all c: Commande | all e: c.chemin.elems | c.chemin.last = c.destination && c.chemin.idxOf[e] = c.chemin.lastIdxOf[e]}
@@ -104,8 +127,8 @@ fact LivraisonUnMinimumLoinQuandMemeASupprimer{all d: Drone | all e:Entrepot | g
 fact start{
 	all d: Drone | all e: Entrepot | init [first, d, e] -- init pour le premier time de l'ordering Time
 	all t: Time-last | let t' = t.next | -- pour tous les Time t on definit le Time suivant t'
-		some d: Drone |
-			deplacerDrone [t, t', d]
+		all d: Drone |
+			ActionDrone [t, t', d]
 }
 
 -----ASSERTIONS-----
@@ -142,13 +165,18 @@ assert UniciteEtapeLivraison{all d:Drone | !d.cmd.chemin.hasDups}
 --Est ce qu'on va bin a la destination ?
 assert accesDestination{all d:Drone | one t: Time | d.cmd.destination = d.coord.t}
 --check accesDestination
-
+--index de l'entrepot dans un chemin est bien 0
+assert IndexEntrepotChemin{all d:Drone | all e:Entrepot | d.cmd.chemin.idxOf[e] = 0}
+--check IndexEntrepotChemin
+--Si batterie = 0, drone sur un receptacle ou un entrepot
+assert BatterieNonNulle{all d:Drone | all r:Receptacle | all e:Entrepot | all t:Time | d.batterie.t =0 and (distanceDeManhattan[d.coord.t, r]=0 or distanceDeManhattan[d.coord.t, e]=0)}
+--check BatterieNonNulle
 
 -----RUN-----
 pred go {}
 --run go
 //run go for 10 but exactly 13 Drone, 5 Int
-run go for 8 but exactly 1 Drone, exactly 1 Commande, exactly 3 Time, exactly 3 Receptacle, 5 Int
+run go for 8 but exactly 1 Drone, exactly 1 Commande, exactly 8 Time, exactly 3 Receptacle, 5 Int
 
 
 
