@@ -26,13 +26,16 @@ some sig Drone{
 some sig Commande{
 	destination: one Receptacle,
 	poid: Int,
-	chemin : seq Coordonnees
+	chemin : seq Coordonnees,
+	livree : Int one ->Time
 }
 
 sig Time{}
 
 -----FONCTIONS UTILITAIRES-----
 fun abs[n: Int] : Int {n<0 => (negate[n]) else (n) }
+
+fun livrerCommande[d : Drone, t, t':Time ] : Int {(d.cmd.livree.t = 1 && distanceDeManhattan[d.coord.t',d.cmd.destination] != 0) =>(1) else (d.cmd.livree.t = 1 && distanceDeManhattan[d.coord.t',d.cmd.destination] = 0) => (0) else (-1)}
 
 fun distanceDeManhattan[n,m: Coordonnees] : Int{
 	add[abs[sub[m.x,n.x]], abs[sub[m.y,n.y]]]
@@ -83,8 +86,9 @@ pred ActionDrone [t, t': Time, d: Drone] {
 pred Deplacer [t, t': Time, d: Drone]{
 	let IndActuellesCoord = d.cmd.chemin.idxOf[d.coord.t] |
 		d.coord.t =  d.cmd.chemin[IndActuellesCoord] &&
-		d.coord.t' = d.cmd.chemin[add[IndActuellesCoord,1]] &&
-		d.batterie.t' = sub[d.batterie.t, 1]
+		d.coord.t' = d.cmd.chemin[add[IndActuellesCoord,d.cmd.livree.t]] &&
+		d.batterie.t' = sub[d.batterie.t, 1] &&
+		d.cmd.livree.t' = livrerCommande[d,t, t']
 
 }
 
@@ -134,7 +138,9 @@ fact BatterieVide{all d: Drone | some r: Receptacle | some e: Entrepot | all t: 
 fact LivraisonDerniereCoord {all c: Commande | all e: c.chemin.elems | c.chemin.last = c.destination && c.chemin.idxOf[e] = c.chemin.lastIdxOf[e]}
 fact LivraisonPremiereCoord {all c: Commande | all e: Entrepot | c.chemin.first = e}
 fact LivraisonEcartCoord {all c: Commande | InstancierChemin[c.chemin]}
-fact LivraisonUnMinimumLoinQuandMemeASupprimer{all d: Drone | all e:Entrepot | gt[distanceDeManhattan[e, d.cmd.destination], 2]}
+fact LivraisonNonCompletee {all c:Commande | c.livree.first = 1}
+fact LivraisonLivreeOuNon {all c:Commande | all t:Time | (c.livree.t = -1 ||c.livree.t = 1 || c.livree.t = 0)}
+fact LivraisonUnMinimumLoinQuandMemeASupprimer{all d: Drone | all e:Entrepot | lt[distanceDeManhattan[e, d.cmd.destination], 2]}
 --Start
 fact start{
 
@@ -188,7 +194,7 @@ assert BatterieNonNulle{all d:Drone | all r:Receptacle | all e:Entrepot | all t:
 pred go {}
 --run go
 //run go for 10 but exactly 13 Drone, 5 Int
-run go for 8 but exactly 1 Drone, exactly 1 Commande, exactly 8 Time, exactly 3 Receptacle, 5 Int
+run go for 8 but exactly 1 Drone, exactly 1 Commande, exactly 8 Time, exactly 3 Receptacle,5 Int
 
 
 
