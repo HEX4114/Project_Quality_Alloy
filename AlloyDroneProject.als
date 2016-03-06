@@ -185,6 +185,6 @@ assert IndexEntrepotChemin{all d:Drone | all e:Entrepot | d.cmd.chemin.idxOf[e] 
 
 /**-----RUN-----**/
 pred go {}
-run go for 8 but exactly 3 Drone, exactly 3 Commande, exactly 8 Time, exactly 2 Receptacle, 5 Int
+run go for 8 but exactly 2 Drone, exactly 2 Commande, exactly 8 Time, exactly 2 Receptacle, 5 Int
 
 
