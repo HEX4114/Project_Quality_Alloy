@@ -39,8 +39,8 @@ fun abs[n: Int] : Int {n<0 => (negate[n]) else (n) }
 
 fun livrerCommande[d : Drone, t, t':Time ] : Int 
 																	{
-																	(d.cmd.livree.t = 1 && (d.coord.t'.x != d.cmd.destination.x || d.coord.t'.y != d.cmd.destination.y )) implies (1) 
-																	else ((d.cmd.livree.t = 1 && d.coord.t'.x = d.cmd.destination.x && d.coord.t'.y = d.cmd.destination.y)  implies (0) 
+																	d.cmd.livree.t = 1 && (d.coord.t'.x != d.cmd.destination.x || d.coord.t'.y != d.cmd.destination.y ) implies (1) 
+																	else (d.cmd.livree.t = 1 && d.coord.t'.x = d.cmd.destination.x && d.coord.t'.y = d.cmd.destination.y  implies (0) 
 																	else (-1))
 																	}
 
@@ -100,7 +100,8 @@ pred ActionDrone [t, t': Time, d: Drone] {
 	some r:Receptacle | all e:Entrepot |
 	((d.batterie.t < 3 && (d.coord.t in r || d.coord.t in e))
 	implies (
-		RechargerBatterie[t, t', d, d.coord.t]
+		RechargerBatterie[t, t', d, d.coord.t] &&
+		d.cmd.livree.t' = d.cmd.livree.t'
 	)else (
 		Deplacer [t, t', d]
 	))
