@@ -13,7 +13,8 @@ sig Noeud extends Coordonnees {}	--Coordonnées où il n'y a ni entrepôt ni ré
 one sig Entrepot extends Coordonnees{}
 
 some sig Receptacle extends Coordonnees{
-	poidsMax: Int	--Poids maximum que le réceptacles peut contenir.
+	poidsCourant: Int one -> Time,
+	poidsMax: Int		--Poids maximum que le réceptacles peut contenir.
 }
 
 some sig Drone{
@@ -54,15 +55,14 @@ pred Superpose[n1, n2: Coordonnees]{
 
 pred ObjetSurCoord[o, c: Coordonnees]{
 	eq[o.x,c.x] && eq[o.y,c.y]
-	--o.x=c.x and o.y=c.y
 }
 
 pred DronesSimilaires[d1,d2 : Drone]{
 	d1 = d2
 }
 
-pred init [t: Time, d: Drone, e: Entrepot] { 	--On doit faire l'init pour un Time t
-	d.coord.t = e && 	d.batterie.t = 3 			--Tous les drones a l'entrepot et chargés
+pred Init [t: Time, d: Drone, e: Entrepot] { 	--On doit faire l'init pour un Time t
+	d.coord.t = e && 	d.batterie.t = 3 	 && (all r:Receptacle | r.poidsCourant.t = 0)		--Tous les drones a l'entrepot et chargés
 }
 
 pred Deplacer [t, t': Time, d: Drone]{
@@ -93,7 +93,6 @@ pred ActionDrone [t, t': Time, d: Drone] {
 	implies (
 		RechargerBatterie[t, t', d, d.coord.t]
 	)else (
-		--Attendre[t, t', d]
 		Deplacer [t, t', d]
 	))
 }
@@ -103,30 +102,31 @@ pred ActionDrone [t, t': Time, d: Drone] {
 fact {all n: Coordonnees| n.x >=0 && n.x <= 7 && n.y >= 0 && n.y <= 7}
 --Entrepôt
 fact EntrepotNonIsole {all e: Entrepot | some r: Receptacle | Atteignable[e, r]}
---fact EntrepotDisjointR{one e: Entrepot | all r: Receptacle | ! eq[distanceDeManhattan[e ,r], 0]}
-fact EntrepotDisjointR{one e: Entrepot | all r: Receptacle | !(distanceDeManhattan[e ,r]=0)}
---fact EntrepotDisjointN{one e: Entrepot | all n: Noeud | ! eq[distanceDeManhattan[e ,n], 0]}
+fact EntrepotDisjointR{one e: Entrepot | all r: Receptacle | ! eq[distanceDeManhattan[e ,r], 0]}
+fact EntrepotDisjointN{one e: Entrepot | all n: Noeud | ! eq[distanceDeManhattan[e ,n], 0]}
 --Réceptacles et noeuds
 fact EcartReceptacles {all r: Receptacle | some r2: Receptacle | Atteignable[r,r2] &&r!=r2}
 fact NoeudsDisjoints{all n1: Coordonnees| no n2: Coordonnees | Superpose[n1, n2]}
 fact UnDroneReceptacle {all d1:Drone | all r:Receptacle | all t:Time | no d2 : Drone | d1 != d2 && d1.coord.t = r && d2.coord.t = r }
 fact UnDroneNoeud {all d1:Drone | all n:Noeud |all t:Time |no d2 : Drone |d1 != d2 && d1.coord.t = n && d2.coord.t = n }
 --Poids
-fact PoidsSupZero{all c: Commande | c.poids>0}
-/*fact PoidInfPoidMax{}*/
+fact PoidSupZero{no c: Commande | c.poids <= 0}
+fact PoidCourantSupZero{all t:Time | no r: Receptacle | r.poidsCourant.t < 0}
+fact PoidMaxReceptacleSupZero {no r: Receptacle | r.poidsMax <= 0}
+fact PoidMaxDroneSupZero {no d: Drone | d.poidsMax <= 0}
+fact PoidCommandInfPoidMaxReceptacle {all c: Commande | c.poids <= c.destination.poidsMax}
+fact PoidCommandInfPoidMaxDrone {all d: Drone | d.cmd.poids <= d.poidsMax}
 --Batteries
 fact BatterieMaxMin{all d: Drone | all t:Time | d.batterie.t>=0 && d.batterie.t<=3}
 fact BatterieVide{all d: Drone | some r: Receptacle | some e: Entrepot | all t: Time | (d.batterie.t = 0 && (d.coord.t = r || d.coord.t = e)) || (d.batterie.t > 0)} --Si batterie = 0 alors le drone doit être sur "r" ou "e"
 --Livraisons
-
 fact LivraisonDerniereCoord {all c: Commande | all e: c.chemin.elems | c.chemin.last = c.destination && c.chemin.idxOf[e] = c.chemin.lastIdxOf[e]}
 fact LivraisonPremiereCoord {all c: Commande | all e: Entrepot | c.chemin.first = e}
 fact LivraisonEcartCoord {all c: Commande | InstancierChemin[c.chemin]}
-fact LivraisonUnMinimumLoinQuandMemeASupprimer{all d: Drone | all e:Entrepot | gt[distanceDeManhattan[e, d.cmd.destination], 2]}
 --Start
-fact start{
-	all d: Drone | all e: Entrepot | init [first, d, e] -- init pour le premier time de l'ordering Time
-	all t: Time-last | let t' = t.next | -- pour tous les Time t on definit le Time suivant t'
+fact Start{
+	all d: Drone | all e: Entrepot | Init [first, d, e] --Init pour le premier time de l'ordering Time
+	all t: Time-last | let t' = t.next | --Pour tous les Time t on definit le Time suivant t'
 		all d: Drone |
 			ActionDrone [t, t', d]
 }
@@ -156,26 +156,23 @@ assert DroneEntrepotFirst{all ddd: Drone | all e: Entrepot | ddd.coord.first = e
 --check DroneEntrepotFirst for 5 but 5 Int
 assert Poids{all c:Commande | c.poids > 0}
 --check Poids for 5 but 5 Int
-
-/*Assert à vérif*/
-assert ReceptaclesAtteignables {all r: Receptacle | 	no r2: Receptacle | !Atteignable[r,r2]}
---check ReceptaclesAtteignables
-
+assert ReceptaclesAtteignables {all r: Receptacle | some r2: Receptacle | some e: Entrepot | Atteignable[r,r2] || Atteignable[r,e]}
+--check ReceptaclesAtteignables for 5 but 5 Int
 assert ReceptacleUnDrone{all r:Receptacle | all t:Time|lone d:Drone| d.coord.t = r}
---check ReceptacleUnDrone
+--check ReceptacleUnDrone for 5 but 5 Int
 assert NoeudUnDrone{all n:Noeud | all t:Time|lone d:Drone| d.coord.t = n}
---check NoeudUnDrone
+--check NoeudUnDrone for 5 but 5 Int
 assert accesDestination{all d:Drone | one t: Time | d.cmd.destination = d.coord.t} --Est ce qu'on va bien a la destination ?
---check accesDestination
+--check accesDestination for 5 but 5 Int
 assert UniciteEtapeLivraison{all d:Drone | !d.cmd.chemin.hasDups}
---check UniciteEtapeLivraison
-
+--check UniciteEtapeLivraison for 5 but 5 Int
+assert DeplacementDroneDeUn{all d:Drone | all t:Time | let t' = t.next | distanceDeManhattan[d.coord.t, d.coord.t'] <=1}
+--check DeplacementDroneDeUn for 5 but 5 Int
 assert IndexEntrepotChemin{all d:Drone | all e:Entrepot | d.cmd.chemin.idxOf[e] = 0} --index de l'entrepot dans un chemin est bien 0
 --check IndexEntrepotChemin
 
 /**-----RUN-----**/
-/*pred go {}
---run go
-//run go for 10 but exactly 13 Drone, 5 Int
-run go for 8 but exactly 1 Drone, exactly 1 Commande, exactly 8 Time, exactly 2 Receptacle, 5 Int*/
+pred go {}
+run go for 8 but exactly 1 Drone, exactly 1 Commande, exactly 8 Time, exactly 2 Receptacle, 5 Int
+
 
