@@ -107,6 +107,15 @@ pred ActionDrone [t, t': Time, d: Drone] {
 	))
 }
 
+pred DepotCommande [t, t': Time, d:Drone]{
+	((eq[ livrerCommande[d,t, t'] , 0 ] )
+	implies (
+	d.cmd.destination.poidsCourant.t' = add[d.cmd.destination.poidsCourant.t,d.cmd.poids]
+	)else(
+	d.cmd.destination.poidsCourant.t' = d.cmd.destination.poidsCourant.t
+	))
+}
+
 /**-----Invariants-----**/
 --Limites coordonnées
 fact {all n: Coordonnees| n.x >=0 && n.x <= 7 && n.y >= 0 && n.y <= 7}
@@ -135,6 +144,8 @@ fact LivraisonPremiereCoord {all c: Commande | all e: Entrepot | c.chemin.first 
 fact LivraisonNonCompletee {all c:Commande | c.livree.first = 1}
 fact LivraisonLivreeOuNon {all c:Commande | all t:Time | (c.livree.t = -1 ||c.livree.t = 1 || c.livree.t = 0)}
 fact LivraisonEcartCoord {all c: Commande | InstancierChemin[c.chemin]}
+fact DeportCommande {	all d: Drone | all t: Time-last | let t' = t.next | DepotCommande [t, t', d]}
+
 --Start
 fact Start{
 	all d: Drone | all e: Entrepot | Init [first, d, e] --Init pour le premier time de l'ordering Time
