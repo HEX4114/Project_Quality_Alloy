@@ -27,14 +27,17 @@ some sig Drone{
 some sig Commande{
 	destination: one Receptacle,
 	poids: Int,
-	chemin : seq Coordonnees	--Liste des coordonnées (noeuds ou réceptacles) par lesquelles le drone devra passer pour atteindre la destination de la commande
+	chemin : seq Coordonnees,	--Liste des coordonnées (noeuds ou réceptacles) par lesquelles le drone devra passer pour atteindre la destination de la commande
 												--chemin[0] = entrepôt et chemin[end] = commande.destination
+	livree : Int one ->Time
 }
 
 sig Time{}
 
 -----FONCTIONS UTILITAIRES-----
 fun abs[n: Int] : Int {n<0 => (negate[n]) else (n) }
+
+fun livrerCommande[d : Drone, t, t':Time ] : Int {(d.cmd.livree.t = 1 && distanceDeManhattan[d.coord.t',d.cmd.destination] != 0) =>(1) else (d.cmd.livree.t = 1 && distanceDeManhattan[d.coord.t',d.cmd.destination] = 0 => (0) else (-1))}
 
 fun distanceDeManhattan[n,m: Coordonnees] : Int{
 	add[abs[sub[m.x,n.x]], abs[sub[m.y,n.y]]]
@@ -68,8 +71,9 @@ pred Init [t: Time, d: Drone, e: Entrepot] { 	--On doit faire l'init pour un Tim
 pred Deplacer [t, t': Time, d: Drone]{
 	let IndActuellesCoord = d.cmd.chemin.idxOf[d.coord.t] |
 		d.coord.t =  d.cmd.chemin[IndActuellesCoord] &&
-		d.coord.t' = d.cmd.chemin[add[IndActuellesCoord,1]] &&
-		d.batterie.t' = sub[d.batterie.t, 1]
+		d.coord.t' = d.cmd.chemin[add[IndActuellesCoord,d.cmd.livree.t]] &&
+		d.batterie.t' = sub[d.batterie.t, 1] &&
+		d.cmd.livree.t' = livrerCommande[d,t, t']
 }
 
 pred InstancierChemin [s: seq Coordonnees]{
@@ -122,6 +126,8 @@ fact BatterieVide{all d: Drone | some r: Receptacle | some e: Entrepot | all t: 
 --Livraisons
 fact LivraisonDerniereCoord {all c: Commande | all e: c.chemin.elems | c.chemin.last = c.destination && c.chemin.idxOf[e] = c.chemin.lastIdxOf[e]}
 fact LivraisonPremiereCoord {all c: Commande | all e: Entrepot | c.chemin.first = e}
+fact LivraisonNonCompletee {all c:Commande | c.livree.first = 1}
+fact LivraisonLivreeOuNon {all c:Commande | all t:Time | (c.livree.t = -1 ||c.livree.t = 1 || c.livree.t = 0)}
 fact LivraisonEcartCoord {all c: Commande | InstancierChemin[c.chemin]}
 --Start
 fact Start{
