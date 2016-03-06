@@ -13,6 +13,7 @@ sig Noeud extends Coordonnees {}
 one sig Entrepot extends Coordonnees{}
 
 some sig Receptacle extends Coordonnees{
+	poidCurrent: Int one -> Time,
 	poidMax: Int	
 }
 
@@ -25,7 +26,7 @@ some sig Drone{
 
 some sig Commande{
 	destination: one Receptacle,
-	poid: Int,
+	poid: Int one -> Time,
 	chemin : seq Coordonnees
 }
 
@@ -65,7 +66,7 @@ pred DronesSimilaires[d1,d2 : Drone]{
 }
 
 pred init [t: Time, d: Drone, e: Entrepot] { 	--On doit faire l'init pour un Time t
-	d.coord.t = e && 	d.batterie.t = 3 			--Tous les drones a l'entrepot et chargés
+	d.coord.t = e && 	d.batterie.t = 3 	 && (all r:Receptacle | r.poidCurrent.t = 0)		--Tous les drones a l'entrepot et chargés
 }
 
 pred ActionDrone [t, t': Time, d: Drone] {
@@ -121,11 +122,14 @@ fact NoeudsDisjoints{all n1: Coordonnees| no n2: Coordonnees | Superpose[n1, n2]
 fact UnDroneReceptacle {all d1:Drone | all r:Receptacle | all t:Time | no d2 : Drone | d1 != d2 && d1.coord.t = r && d2.coord.t = r }
 fact UnDroneNoeud {all d1:Drone | all n:Noeud |all t:Time |no d2 : Drone |d1 != d2 && d1.coord.t = n && d2.coord.t = n }
 --Poids
-fact PoidSupZero{no c: Commande | c.poid <= 0}
+fact PoidSupZero{all t:Time | no c: Commande | c.poid.t <= 0}
+fact PoidCurrentSupZero{all t:Time | no r: Receptacle | r.poidCurrent.t < 0}
 fact PoidMaxReceptacleSupZero {no r: Receptacle | r.poidMax <= 0}
 fact PoidMaxDroneSupZero {no d: Drone | d.poidMax <= 0}
-fact PoidCommandInfPoidMaxReceptacle {all c: Commande | c.poid <= c.destination.poidMax}
-fact PoidCommandInfPoidMaxDrone {all d: Drone | d.cmd.poid <= d.poidMax}
+fact PoidCommandInfPoidMaxReceptacle {all c: Commande | all t: Time | c.poid.t <= c.destination.poidMax}
+fact PoidCommandInfPoidMaxDrone {all d: Drone | all t: Time | d.cmd.poid.t <= d.poidMax}
+
+
 --Batteries
 fact BatterieMaxMin{all d: Drone | all t:Time | d.batterie.t>=0 && d.batterie.t<=3}
 fact BatterieVide{all d: Drone | some r: Receptacle | some e: Entrepot | all t: Time | (d.batterie.t = 0 && (d.coord.t = r || d.coord.t = e)) || (d.batterie.t > 0)} --Si batterie = 0 alors le drône doit être sur "r" ou "e"
@@ -190,7 +194,7 @@ assert BatterieNonNulle{all d:Drone | all r:Receptacle | all e:Entrepot | all t:
 pred go {}
 --run go
 //run go for 10 but exactly 13 Drone, 5 Int
-run go for 8 but exactly 1 Drone, exactly 2 Commande, exactly 8 Time, exactly 3 Receptacle, 5 Int
+run go for 8 but exactly 1 Drone, exactly 2 Commande, exactly 8 Time, exactly 2 Receptacle, 5 Int
 
 
 
