@@ -101,7 +101,7 @@ pred ActionDrone [t, t': Time, d: Drone] {
 	((d.batterie.t < 3 && (d.coord.t in r || d.coord.t in e))
 	implies (
 		RechargerBatterie[t, t', d, d.coord.t] &&
-		d.cmd.livree.t' = d.cmd.livree.t'
+		d.cmd.livree.t' = d.cmd.livree.t
 	)else (
 		Deplacer [t, t', d]
 	))
@@ -185,6 +185,6 @@ assert IndexEntrepotChemin{all d:Drone | all e:Entrepot | d.cmd.chemin.idxOf[e] 
 
 /**-----RUN-----**/
 pred go {}
-run go for 8 but exactly 1 Drone, exactly 1 Commande, exactly 8 Time, exactly 2 Receptacle, 5 Int
+run go for 8 but exactly 3 Drone, exactly 3 Commande, exactly 8 Time, exactly 2 Receptacle, 5 Int
 
 
