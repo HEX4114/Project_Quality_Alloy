@@ -173,6 +173,8 @@ assert accesDestination{all d:Drone | one t: Time | d.cmd.destination = d.coord.
 --check accesDestination
 assert UniciteEtapeLivraison{all d:Drone | !d.cmd.chemin.hasDups}
 --check UniciteEtapeLivraison
+assert DeplacementDroneDeUn{all d:Drone | all t:Time | let t' = t.next | distanceDeManhattan[d.coord.t, d.coord.t'] <=1}
+--check DeplacementDroneDeUn
 
 --index de l'entrepot dans un chemin est bien 0
 assert IndexEntrepotChemin{all d:Drone | all e:Entrepot | d.cmd.chemin.idxOf[e] = 0}
