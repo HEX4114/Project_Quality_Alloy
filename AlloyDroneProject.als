@@ -35,7 +35,7 @@ sig Time{}
 -----FONCTIONS UTILITAIRES-----
 fun abs[n: Int] : Int {n<0 => (negate[n]) else (n) }
 
-fun livrerCommande[d : Drone, t, t':Time ] : Int {(d.cmd.livree.t = 1 && distanceDeManhattan[d.coord.t',d.cmd.destination] != 0) =>(1) else (d.cmd.livree.t = 1 && distanceDeManhattan[d.coord.t',d.cmd.destination] = 0) => (0) else (-1)}
+fun livrerCommande[d : Drone, t, t':Time ] : Int {(d.cmd.livree.t = 1 && distanceDeManhattan[d.coord.t',d.cmd.destination] != 0) =>(1) else (d.cmd.livree.t = 1 && distanceDeManhattan[d.coord.t',d.cmd.destination] = 0 => (0) else (-1))}
 
 fun distanceDeManhattan[n,m: Coordonnees] : Int{
 	add[abs[sub[m.x,n.x]], abs[sub[m.y,n.y]]]
