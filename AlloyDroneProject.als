@@ -35,7 +35,7 @@ sig Time{}
 -----FONCTIONS UTILITAIRES-----
 fun abs[n: Int] : Int {n<0 => (negate[n]) else (n) }
 
-fun livrerCommande[d : Drone, t, t':Time ] : Int {d.cmd.livree.t = 1 && d.coord.t' != d.cmd.chemin.last =>(1) else d.cmd.livree.t = 1 && d.coord.t' = d.cmd.chemin.last => (0) else (-1)}
+fun livrerCommande[d : Drone, t, t':Time ] : Int {(d.cmd.livree.t = 1 && distanceDeManhattan[d.coord.t',d.cmd.destination] != 0) =>(1) else (d.cmd.livree.t = 1 && distanceDeManhattan[d.coord.t',d.cmd.destination] = 0) => (0) else (-1)}
 
 fun distanceDeManhattan[n,m: Coordonnees] : Int{
 	add[abs[sub[m.x,n.x]], abs[sub[m.y,n.y]]]
@@ -139,6 +139,7 @@ fact LivraisonDerniereCoord {all c: Commande | all e: c.chemin.elems | c.chemin.
 fact LivraisonPremiereCoord {all c: Commande | all e: Entrepot | c.chemin.first = e}
 fact LivraisonEcartCoord {all c: Commande | InstancierChemin[c.chemin]}
 fact LivraisonNonCompletee {all c:Commande | c.livree.first = 1}
+fact LivraisonLivreeOuNon {all c:Commande | all t:Time | (c.livree.t = -1 ||c.livree.t = 1 || c.livree.t = 0)}
 fact LivraisonUnMinimumLoinQuandMemeASupprimer{all d: Drone | all e:Entrepot | lt[distanceDeManhattan[e, d.cmd.destination], 2]}
 --Start
 fact start{
