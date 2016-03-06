@@ -154,7 +154,7 @@ assert EntrepotExist {one c: Coordonnees | one e: Entrepot | ObjetSurCoord [e,c]
 --check EntrepotExist
 assert CoordonneeSansReceptacle {some c: Coordonnees | no r: Receptacle | ObjetSurCoord[r,c]}
 --check CoordonneeSansReceptacle
-assert CoordonneesPlusiersReceptacles {no c: Coordonnees | one r1: Receptacle | one r2: Receptacle | ObjetSurCoord [r1,c] && ObjetSurCoord[r2,c] && r1 != r2}
+assert CoordonneesPlusieursReceptacles {all r1: Receptacle | all r2: Receptacle | !ObjetSurCoord [r1,r2] and r1 != r2}
 --check CoordonneesPlusiersReceptacles
 assert RNBsupZero {some c: Coordonnees | one r: Receptacle | ObjetSurCoord [r,c]&&!eq[c.x,0]&&!eq[c.y,0]}
 --check RNBsupZero
@@ -167,8 +167,6 @@ assert DroneEntrepotFirstR {all ddd: Drone | all rrr:Receptacle | ddd.coord.firs
 assert DroneEntrepotFirstN {all ddd: Drone | all nnn:Noeud | ddd.coord.first != nnn}
 --check DroneEntrepotFirstN
 assert ReceptaclesAtteignable{no r1: Receptacle | all r2: Receptacle | nonAtteignable[r1,r2]}
---check ReceptaclesAtteignable
-assert ReceptacleUnDrone{all r:Receptacle | all t:Time|lone d:Drone| d.coord.t = r}
 --check ReceptacleUnDrone
 assert NoeudUnDrone{all n:Noeud | all t:Time|lone d:Drone| d.coord.t = n}
 --check NoeudUnDrone
