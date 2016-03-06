@@ -121,8 +121,11 @@ fact NoeudsDisjoints{all n1: Coordonnees| no n2: Coordonnees | Superpose[n1, n2]
 fact UnDroneReceptacle {all d1:Drone | all r:Receptacle | all t:Time | no d2 : Drone | d1 != d2 && d1.coord.t = r && d2.coord.t = r }
 fact UnDroneNoeud {all d1:Drone | all n:Noeud |all t:Time |no d2 : Drone |d1 != d2 && d1.coord.t = n && d2.coord.t = n }
 --Poids
-fact PoidSupZero{all c: Commande | gt[c.poid,0]}
-fact PoidInfPoidMax{}
+fact PoidSupZero{no c: Commande | c.poid <= 0}
+fact PoidMaxReceptacleSupZero {no r: Receptacle | r.poidMax <= 0}
+fact PoidMaxDroneSupZero {no d: Drone | d.poidMax <= 0}
+fact PoidCommandInfPoidMaxReceptacle {all c: Commande | c.poid <= c.destination.poidMax}
+fact PoidCommandInfPoidMaxDrone {all d: Drone | d.cmd.poid <= d.poidMax}
 --Batteries
 fact BatterieMaxMin{all d: Drone | all t:Time | d.batterie.t>=0 && d.batterie.t<=3}
 fact BatterieVide{all d: Drone | some r: Receptacle | some e: Entrepot | all t: Time | (d.batterie.t = 0 && (d.coord.t = r || d.coord.t = e)) || (d.batterie.t > 0)} --Si batterie = 0 alors le drône doit être sur "r" ou "e"
