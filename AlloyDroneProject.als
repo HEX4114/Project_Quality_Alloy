@@ -130,7 +130,6 @@ fact PoidCommandInfPoidMaxDrone {all d: Drone | d.cmd.poid <= d.poidMax}
 fact BatterieMaxMin{all d: Drone | all t:Time | d.batterie.t>=0 && d.batterie.t<=3}
 fact BatterieVide{all d: Drone | some r: Receptacle | some e: Entrepot | all t: Time | (d.batterie.t = 0 && (d.coord.t = r || d.coord.t = e)) || (d.batterie.t > 0)} --Si batterie = 0 alors le drône doit être sur "r" ou "e"
 --Livraisons
-
 fact LivraisonDerniereCoord {all c: Commande | all e: c.chemin.elems | c.chemin.last = c.destination && c.chemin.idxOf[e] = c.chemin.lastIdxOf[e]}
 fact LivraisonPremiereCoord {all c: Commande | all e: Entrepot | c.chemin.first = e}
 fact LivraisonEcartCoord {all c: Commande | InstancierChemin[c.chemin]}
@@ -168,16 +167,18 @@ assert DroneEntrepotFirstR {all ddd: Drone | all rrr:Receptacle | ddd.coord.firs
 --check DroneEntrepotFirstR for 5 but 5 Int
 assert DroneEntrepotFirstN {all ddd: Drone | all nnn:Noeud | ddd.coord.first != nnn}
 --check DroneEntrepotFirstN for 5 but 5 Int
+
 assert ReceptacleUnDrone{all r:Receptacle | all t:Time|lone d:Drone| d.coord.t = r}
 --check ReceptacleUnDrone for 5 but 5 Int
 assert NoeudUnDrone{all n:Noeud | all t:Time|lone d:Drone| d.coord.t = n}
 --check NoeudUnDrone for 5 but 5 Int
-assert accesDestination{all d:Drone | one t: Time | d.cmd.destination = d.coord.t} --Est ce qu'on va bien a la destination ?
+assert accesDestination{all d:Drone | one t: Time | d.coord.t = d.cmd.destination} --Est ce qu'on va bien a la destination ? oui mais seulement si on a assez de temps
 --check accesDestination for 5 but 5 Int
-assert UniciteEtapeLivraison{all d:Drone | !d.cmd.chemin.hasDups}
+assert UniciteEtapeLivraison{all d:Drone | !(d.cmd.chemin.hasDups)}
 --check UniciteEtapeLivraison for 5 but 5 Int
-assert DeplacementDroneDeUn{all d:Drone | all t:Time | let t' = t.next | distanceDeManhattan[d.coord.t, d.coord.t'] <=1}
---check DeplacementDroneDeUn for 5 but 5 Int
+
+assert DeplacementDroneDeUn{all d:Drone | all t:Time-last | let t' = t.next | distanceDeManhattan[d.coord.t, d.coord.t'] <=1}
+check DeplacementDroneDeUn for 5 but 5 Int
 
 --index de l'entrepot dans un chemin est bien 0
 assert IndexEntrepotChemin{all d:Drone | all e:Entrepot | d.cmd.chemin.idxOf[e] = 0}
