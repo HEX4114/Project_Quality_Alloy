@@ -44,6 +44,12 @@ fun livrerCommande[d : Drone, t, t':Time ] : Int
 																	else (-1))
 																	}
 
+fun batterieAEnlever[c1,c2 : Coordonnees] : Int
+																	{
+																		(c1.x != c2.x || c1.y != c2.y ) implies (-1)
+																		else(0)
+																	}
+
 fun distanceDeManhattan[n,m: Coordonnees] : Int{
 	add[abs[sub[m.x,n.x]], abs[sub[m.y,n.y]]]
 }
@@ -77,7 +83,7 @@ pred Deplacer [t, t': Time, d: Drone]{
 	let IndActuellesCoord = d.cmd.chemin.idxOf[d.coord.t] |
 		d.coord.t =  d.cmd.chemin[IndActuellesCoord] &&
 		d.coord.t' = d.cmd.chemin[add[IndActuellesCoord,d.cmd.livree.t]] &&
-		d.batterie.t' = sub[d.batterie.t, 1] &&
+		d.batterie.t' = add[d.batterie.t, batterieAEnlever[d.coord.t,d.coord.t']] &&
 		d.cmd.livree.t' = livrerCommande[d,t, t']
 }
 
@@ -196,6 +202,6 @@ assert IndexEntrepotChemin{all d:Drone | all e:Entrepot | d.cmd.chemin.idxOf[e] 
 
 /**-----RUN-----**/
 pred go {}
-run go for 8 but exactly 2 Drone, exactly 2 Commande, exactly 8 Time, exactly 2 Receptacle, 5 Int
+run go for 8 but exactly 1 Drone, exactly 1 Commande, exactly 8 Time, exactly 2 Receptacle, 5 Int
 
 
