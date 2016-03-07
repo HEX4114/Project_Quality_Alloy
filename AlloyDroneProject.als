@@ -37,7 +37,18 @@ sig Time{}
 /**-----FONCTIONS UTILITAIRES-----**/
 fun abs[n: Int] : Int {n<0 => (negate[n]) else (n) }
 
-fun livrerCommande[d : Drone, t, t':Time ] : Int {(d.cmd.livree.t = 1 && distanceDeManhattan[d.coord.t',d.cmd.destination] != 0) =>(1) else (d.cmd.livree.t = 1 && distanceDeManhattan[d.coord.t',d.cmd.destination] = 0 => (0) else (-1))}
+fun livrerCommande[d : Drone, t, t':Time ] : Int 
+																	{
+																	d.cmd.livree.t = 1 && (d.coord.t'.x != d.cmd.destination.x || d.coord.t'.y != d.cmd.destination.y ) implies (1) 
+																	else (d.cmd.livree.t = 1 && d.coord.t'.x = d.cmd.destination.x && d.coord.t'.y = d.cmd.destination.y  implies (0) 
+																	else (-1))
+																	}
+
+fun batterieAEnlever[c1,c2 : Coordonnees] : Int
+																	{
+																		(c1.x != c2.x || c1.y != c2.y ) implies (-1)
+																		else(0)
+																	}
 
 fun distanceDeManhattan[n,m: Coordonnees] : Int{
 	add[abs[sub[m.x,n.x]], abs[sub[m.y,n.y]]]
@@ -72,7 +83,7 @@ pred Deplacer [t, t': Time, d: Drone]{
 	let IndActuellesCoord = d.cmd.chemin.idxOf[d.coord.t] |
 		d.coord.t =  d.cmd.chemin[IndActuellesCoord] &&
 		d.coord.t' = d.cmd.chemin[add[IndActuellesCoord,d.cmd.livree.t]] &&
-		d.batterie.t' = sub[d.batterie.t, 1] &&
+		d.batterie.t' = add[d.batterie.t, batterieAEnlever[d.coord.t,d.coord.t']] &&
 		d.cmd.livree.t' = livrerCommande[d,t, t']
 }
 
@@ -95,9 +106,19 @@ pred ActionDrone [t, t': Time, d: Drone] {
 	some r:Receptacle | all e:Entrepot |
 	((d.batterie.t < 3 && (d.coord.t in r || d.coord.t in e))
 	implies (
-		RechargerBatterie[t, t', d, d.coord.t]
+		RechargerBatterie[t, t', d, d.coord.t] &&
+		d.cmd.livree.t' = d.cmd.livree.t
 	)else (
 		Deplacer [t, t', d]
+	))
+}
+
+pred DepotCommande [t, t': Time, d:Drone]{
+	((eq[ livrerCommande[d,t, t'] , 0 ] )
+	implies (
+	d.cmd.destination.poidsCourant.t' = add[d.cmd.destination.poidsCourant.t,d.cmd.poids]
+	)else(
+	d.cmd.destination.poidsCourant.t' = d.cmd.destination.poidsCourant.t
 	))
 }
 
@@ -129,6 +150,8 @@ fact LivraisonPremiereCoord {all c: Commande | all e: Entrepot | c.chemin.first 
 fact LivraisonNonCompletee {all c:Commande | c.livree.first = 1}
 fact LivraisonLivreeOuNon {all c:Commande | all t:Time | (c.livree.t = -1 ||c.livree.t = 1 || c.livree.t = 0)}
 fact LivraisonEcartCoord {all c: Commande | InstancierChemin[c.chemin]}
+fact DeportCommande {	all d: Drone | all t: Time-last | let t' = t.next | DepotCommande [t, t', d]}
+
 --Start
 fact Start{
 	all d: Drone | all e: Entrepot | Init [first, d, e] --Init pour le premier time de l'ordering Time
