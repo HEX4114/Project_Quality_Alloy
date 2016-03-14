@@ -34,7 +34,7 @@ some sig Commande{
 
 sig Time{}
 
------FONCTIONS UTILITAIRES-----
+/**-----FONCTIONS UTILITAIRES-----**/
 fun abs[n: Int] : Int {n<0 => (negate[n]) else (n) }
 
 fun livrerCommande[d : Drone, t, t':Time ] : Int 
@@ -161,11 +161,11 @@ fact Start{
 }
 
 /**-----ASSERTIONS-----**/
-assert EntrepotExist {some c: Receptacle | one e: Entrepot | !ObjetSurCoord[c,e]}
---check EntrepotExist for 5 but 5 Int
+assert EntrepotSeul{all r: Receptacle | one e: Entrepot | !ObjetSurCoord[r,e]}
+--check EntrepotSeul for 5 but 5 Int
 assert DistanceManthattanPositive{all c1: Coordonnees | no c2: Coordonnees | distanceDeManhattan[c1, c2]<0}
 --check DistanceManthattanPositive for 5 but 5 Int expect 0
-assert RNBsupZero {some c: Coordonnees | one r: Receptacle | ObjetSurCoord[r,c]}
+assert RNBsupZero {some c: Coordonnees | some r: Receptacle | ObjetSurCoord[r,c]}
 --check RNBsupZero for 5 but 5 Int
 assert DNBsupZero{all t: Time | some c: Coordonnees | some d: Drone | eq[distanceDeManhattan[d.coord.t , c],0]}
 --check DNBsupZero for 5 but 5 Int
@@ -181,7 +181,7 @@ assert BatterieNonNulle{all d:Drone | some r:Receptacle | some e:Entrepot | all 
 										(d.batterie.t =0) =>(distanceDeManhattan[d.coord.t, r]=0 
 										or distanceDeManhattan[d.coord.t, e]=0)} --Si batterie = 0, drone sur un receptacle ou un entrepot
 --check BatterieNonNulle for 5 but 5 Int
-assert DroneEntrepotFirst{all ddd: Drone | all e: Entrepot | ddd.coord.first = e}
+assert DroneEntrepotFirst{all d: Drone | all e: Entrepot | d.coord.first = e}
 --check DroneEntrepotFirst for 5 but 5 Int
 assert Poids{all c:Commande | c.poids > 0}
 --check Poids for 5 but 5 Int
@@ -203,6 +203,6 @@ assert IndexEntrepotChemin{all d:Drone | all e:Entrepot | d.cmd.chemin.idxOf[e] 
 
 /**-----RUN-----**/
 pred go {}
-run go for 8 but exactly 1 Drone, exactly 1 Commande, exactly 8 Time, exactly 2 Receptacle, 5 Int
+run go for 8 but exactly 2 Drone, exactly 2 Commande, exactly 8 Time, exactly 2 Receptacle, 5 Int
 
 
