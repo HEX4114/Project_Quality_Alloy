@@ -20,15 +20,15 @@ some sig Receptacle extends Coordonnees{
 some sig Drone{
 	coord: Coordonnees one -> Time, 	--Coordonnées à laquelle se trouve un drone, dépend du temps.
 	batterie: Int one -> Time,				--Taux de charge de la batterie d'un drone, dépend du temps.
-	poidsMax : Int,									--Poids maximum pouvant être transporté par un drone.
-	cmd : Commande								--Commande que le drone doit livrer.
+	poidsMax : Int,								--Poids maximum pouvant être transporté par un drone.
+	cmd : Commande							--Commande que le drone doit livrer.
 }
 
 some sig Commande{
 	destination: one Receptacle,
 	poids: Int,
 	chemin : seq Coordonnees,	--Liste des coordonnées (noeuds ou réceptacles) par lesquelles le drone devra passer pour atteindre la destination de la commande
-												--chemin[0] = entrepôt et chemin[end] = commande.destination
+											--chemin[0] = entrepôt et chemin[end] = commande.destination
 	livree : Int one ->Time
 }
 
@@ -37,11 +37,11 @@ sig Time{}
 /**-----FONCTIONS UTILITAIRES-----**/
 fun abs[n: Int] : Int {n<0 => (negate[n]) else (n) }
 
-fun livrerCommande[d : Drone, t, t':Time ] : Int 
+fun livrerCommande[d : Drone, t, t':Time ] : Int -- fonction déterminant de quelle manière parcourir le chemin de la commande: à l'aller idx++, au retour idx--, à la destination on ne bouge pas
 																	{
-																	d.cmd.livree.t = 1 && (d.coord.t'.x != d.cmd.destination.x || d.coord.t'.y != d.cmd.destination.y ) implies (1) 
-																	else (d.cmd.livree.t = 1 && d.coord.t'.x = d.cmd.destination.x && d.coord.t'.y = d.cmd.destination.y  implies (0) 
-																	else (-1))
+																		d.cmd.livree.t = 1 && (d.coord.t'.x != d.cmd.destination.x || d.coord.t'.y != d.cmd.destination.y ) implies (1) 
+																		else (d.cmd.livree.t = 1 && d.coord.t'.x = d.cmd.destination.x && d.coord.t'.y = d.cmd.destination.y  implies (0) 
+																		else (-1))
 																	}
 
 fun batterieAEnlever[c1,c2 : Coordonnees] : Int
@@ -82,7 +82,7 @@ pred Init [t: Time, d: Drone, e: Entrepot] { 	--On doit faire l'init pour un Tim
 pred Deplacer [t, t': Time, d: Drone]{
 	let IndActuellesCoord = d.cmd.chemin.idxOf[d.coord.t] |
 		d.coord.t =  d.cmd.chemin[IndActuellesCoord] &&
-		d.coord.t' = d.cmd.chemin[add[IndActuellesCoord,d.cmd.livree.t]] &&
+		d.coord.t' = d.cmd.chemin[add[IndActuellesCoord,d.cmd.livree.t]] && --on regarde l'attribut livree pour déterminer si on doit avancer, reculer ou ne pas bouger dans le chemin de la commande
 		d.batterie.t' = add[d.batterie.t, batterieAEnlever[d.coord.t,d.coord.t']] &&
 		d.cmd.livree.t' = livrerCommande[d,t, t']
 }
@@ -90,7 +90,7 @@ pred Deplacer [t, t': Time, d: Drone]{
 pred InstancierChemin [s: seq Coordonnees]{
 	let n = s.inds |
 	all x: Int & n |
-	Voisin[s[x], s[add[x,1]]]
+	Voisin[s[x], s[add[x,1]]] --entre les éléments (coordonnées) d'un chemin(seq) il y a une distance de manhattan de 1
 }
 
 pred Attendre [t, t' :Time, d:Drone]{
@@ -98,7 +98,7 @@ pred Attendre [t, t' :Time, d:Drone]{
 	d.batterie.t' = d.batterie.t
 }
 
-pred RechargerBatterie [t, t': Time, d: Drone, c: Coordonnees]{ 																--Si le drone est à l'entrepôt ou sur un receptacle et que sa batterie 
+pred RechargerBatterie [t, t': Time, d: Drone, c: Coordonnees]{ 														--Si le drone est à l'entrepôt ou sur un receptacle et que sa batterie 
 	d.coord.t = c and d.batterie.t<3 and d.coord.t' = d.coord.t and d.batterie.t' = add[d.batterie.t,1] 	--n'est pas pleine alors il y reste jusqu'à la charge complète
 }
 
